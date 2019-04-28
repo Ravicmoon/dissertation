@@ -1,8 +1,11 @@
 \documentclass[11pt]{hyu_thesis}
+\usepackage[utf8]{inputenc}
 
 \newcommand{\etal}{\textit{et al}.}
 
 \begin{document}
+	
+\frontmatter
 
 \tableofcontents
 \newpage
@@ -10,6 +13,8 @@
 \newpage
 \listoftables
 \newpage
+
+\mainmatter
 
 \section*{ABSTRACT}
 \addcontentsline{toc}{section}{ABSTRACT}
@@ -21,6 +26,7 @@ In this letter, we propose a fast Fourier transform (FFT)-based parallelized tub
 \section{Introduction}
 \label{sec:intro}
 \subsection{Motivation}
+\label{sec:intro:motivation}
 The field of security video summarization has been studied for decades to reduce burdens of browsing large amount of video footages. Earlier approaches~\cite{Smith1998,Petrovic2005,Hoferlin2011} prior to video synopsis~\cite{Rav-Acha2006,Pritch2007,Pritch2008} suffered from several disadvantages including low frame condensation ratio (FR) or missing information, when the frame length of the input video was long. Fundamental building blocks of such approaches were image frames, which means that they tried to select a subset of image frames representing the original video best. On the other hand, building blocks of video synopsis~\cite{Rav-Acha2006,Pritch2007,Pritch2008} are moving objects extracted from the scene, called \textit{object tubes}. In the video synopsis framework, the object tubes are rearranged in the temporal domain and stitched back with background images to generate a short and condensed video. This difference allows video synopsis to efficiently utilize the spatial domain of the video and to drastically improve the FR as compared to the earlier approaches.
 
 Among the diverse research topics in video synopsis, solving the optimization problem for determining starting positions (starting labels) of the object tubes in the temporal domain greatly affects the system performance regarding computation time. This problem is simply denoted as \textit{a tube rearrangement problem}.
@@ -39,9 +45,11 @@ Even though these existing algorithms have their own virtue, they have lack of c
 In this dissertation, the tube rearrangement problem is reformulated as a suitable form for parallel processing, and the novel concurrent optimization algorithm based on 1D convolutions is proposed to accelerate the optimization process. As in other online tube rearrangement algorithms~\cite{Huang2014,ShikunFeng2012,JianqingZhu2015,He2017,Fu2014}, the collision energy is primarily considered during the tube rearrangement. As a preprocessing step, the proposed algorithm reshapes object tubes into probabilistic occupation matrices of $\mathcal{M} \times \mathcal{N} \times \mathcal{T}$ dimension, where $\mathcal{M}$ and $\mathcal{N}$ represent the spatial domain, and $\mathcal{T}$ represents the time domain. This occupation matrix becomes a fundamental building block of the proposed algorithm. Then, the collision energy between two object tubes can be computed as element-wise multiplications of two occupation matrices. This process can be accelerated by utilizing Fast Fourier transform (FFT)~\cite{Oppenheim2009} in conjunction with parallel computing; therefore, the proposed algorithm can effectively determine the starting labels of numerous object tubes in very short amount of time.
 
 \subsection{Related works}
+\label{sec:intro:related}
 A summary of the recent advances in video synopsis is presented as follows. Nie~\etal~\cite{Nie2014} rearrange object tubes in both temporal and spatial domain to generate more condensed videos. Zhu~\etal~\cite{Zhu2014} and Mahapatra~\etal~\cite{Mahapatra2016} extend the concept of video synopsis to the multi-camera network. Wang~\etal~\cite{Wang2013} and Zhong~\etal~\cite{RuiZhong2014} utilize the compressed domain to generate synopsis videos efficiently. X. Li~\etal~\cite{Li2016a} scale down object sizes to reduce collisions in the synopsis video. Z. Li~\etal~\cite{ZhuangLi2009} and K. Li~\etal~\cite{Li2016} introduce a seam carving method to remove redundant information from the original video.
 
 \subsection{Dissertation overview}
+\label{sec:intro:overview}
 The rest of the dissertation is organized as follows. Section \ref{sec:basic_form} introduces the basic formulation of video synopsis and details of the proposed tube rearrangement algorithm are described in Section \ref{sec:rearr}. Section \ref{sec:framework} contains explanations of other components that the online video synopsis consists of. Section \ref{sec:exp} presents experimental results, and the dissertation is concluded in Section \ref{sec:conc}.
 
 \section{Basic formulation of video synopsis}
@@ -71,7 +79,7 @@ Assume that $L=\{l_0,...,l_N\}$ is a set of starting labels for $N$ object tubes
 \label{eq:basic_form}
 E(L)=\sum_{l_i \in L} ( E_a(l_i) + \gamma E_s(l_i) ) + \sum_{l_i,l_j \in L} ( \alpha E_t(l_i, l_j) + \beta E_c(l_i, l_j) ),
 \end{equation}
-where $E_a$, $E_s$, $E_t$, and $E_c$ are activity, background consistency, temporal consistency, and collision energies, respectively. In addition, $\alpha$, $\beta$, and $\gamma$ are weight parameters for controlling importances between the energies.
+where $E_a$, $E_s$, $E_t$, and $E_c$ are activity, background consistency, temporal consistency, and collision energies, respectively. In addition, $\alpha$, $\beta$, and $\gamma$ are weight parameters for controlling importance between the energies.
 
 \subsection{Activity energy}
 At first, $E_a$ defines which object tubes should be appeared in the condensed video. One example of $E_a$ is
@@ -100,7 +108,7 @@ Defining a proper $E_a$ is important for processing the query of the video synop
 \subsection{Time-lapse background generation}
 Before moving on to the next energy term, how to generate time-lapse background is briefly explained. Since the main objective of video synopsis is condensing the contents of the original video, background information as well as foreground has be condensed too. If the input video is 12 hours long and the condensed video is 10 minutes long, time-lapse background can be generated by uniformly subsampling every 720th of original background images or we can use the adaptive sampling rate proportional to (or inverse proportional to) the number of objects in the current frame~\cite{}. An example of the time-lapse background generation is illustrated in Fig.~\ref{}.
 
-\subsection{Background consistency}
+\subsection{Background consistency energy}
 The role of the second energy term in (\ref{eq:basic_form}), $E_s$, is to seamlessly render the object tubes with the time-lapse background images. In the video synopsis framework, foreground pixels of the object tubes are stitched with the background images to generate the condensed video. During the stitching process, image blending algorithms (e.g., Poisson image editing~\cite{}) can be used to smoothly blend the foreground and background pixels. However, inaccurate segmentation results of the foreground or foreground and background pixels from different time of day can cause visually unappealing results as shown in Fig.~\ref{}. $E_s$ is defined to penalize such situation.
 \begin{equation}
 \label{eq:bg_consistency}
@@ -111,7 +119,7 @@ where $\sigma_i$ is a set of boundary pixels for the $i^{\rm{th}}$ object and $B
 In the online video synopsis framework, object tube extraction, time-lapse background generation, and foreground-background stitching are conducted in real-time; therefore, foreground and background pixels are from the similar time of day. Therefore, online video synopsis has less reason to consider $E_s$ during the optimization.
 
 % 2019-04-26
-\subsection{Temporal consistency}
+\subsection{Temporal consistency energy}
 The temporal consistency energy, $E_t$, is designed to keep chronological orders between the object tubes in the original video. If the condensed video contains chronological disorders between the tubes, we may miss the important interaction between the objects presented in the original video. Prior to further discussion about $E_t$, we need to define a probability of the interaction between the two object tubes first. If the objects share common time periods in the original video $(t_i \cap t_j \neq \O)$, the probability becomes
 \begin{equation}
 \label{eq:prob_share_time}
@@ -139,21 +147,43 @@ C & \rm{otherwise},
 \end{equation}
 where $\hat{l}$ indicates a starting label of the object in the input video and $C$ is a large constant value to penalize the objects having temporal inconsistencies. 
 
-Since behaviours of the equation (\ref{eq:Et}) are not straight forward, detail explanations will be given through examples. Assume that two objects are close in spatio-temporal domain of the original video. In this case, $E_t$ of two objects becomes very large (due to $C$), when their relative starting label in the condensed video ($l_i - l_j$) is not exactly same as in the input video ($\hat{l}_i - \hat{l}_j$). On the other hand, 
+Since the behavior of the equation (\ref{eq:Et}) is not straight forward, detail explanations will be given through examples. Assume that two objects are close in spatio-temporal domain of the original video. In this case, $E_t$ of two objects becomes very large (due to $C$), when their relative starting label in the condensed video ($l_i - l_j$) is not exactly same as in the input video ($\hat{l}_i - \hat{l}_j$). Conversely, the objects far from each other in spatio-temporal domain have a low penalty for violating the condition ($\hat{l}_i - \hat{l}_j = l_i - l_j$), because their $p_I$ has a small value.
 
-In (\ref{eq:basic_form}), we should note that energies can be categorized into two groups regarding the number of required parameters: unary and pairwise. Activity and background consistency only requires a single object tube to calculate the energies; on the other hand, remaining energies require two object tubes for the calculation.
+% 2019-04-27
+As similar to $E_s$, the role of $E_t$ is not significant in online video synopsis. Recent online video synopsis frameworks~\cite{} maintain a queue of object tubes and the queue grows as new object tube is extracted in the input video. When the size of the queue exceeds a certain threshold $K$, framework generates a partial condensed video with $K$ object tubes, and then removes the first $K$ objects from the queue. Based on the framework, chronological disorders only can be presented when the objects are in the same part of the condensed video. Even if the objects are optimized together to generate a same part of the resulting synopsis video, their temporal inconsistencies are negligible, because their relative spatio-temporal distance is small. In consequence, the one and only energy term to optimize in online video synopsis is the collision energy.
+
+\subsection{Collision energy}
+The key role of $E_c$ is to prevent the resulting synopsis video from becoming crowded. During the video synopsis process, the objects from different time periods in the input video are displayed simultaneously in the same scene of the condensed video. In this case, pixel overlaps between the objects make us difficult to understand the context of the synopsis video. To penalize such situation through $E_c$, a degree of collision between the objects is defined as
+\begin{equation}
+\label{eq:Ec}
+E_c(l_i,l_j)=\sum_{x,y,t \in t_i \cap t_j} \chi_i(x,y,t) \chi_j(x,y,t).
+\end{equation}
+
+Based on (\ref{eq:Ec}), a collision between two objects having distinctive colors from the background is considered more seriously. However, this definition of $E_c$ is computationally expensive due to $\chi(x,y,t)$. Therefore, in this dissertation, the multiplication of two characteristic functions is replaced with the intersection over union (IU) between two bounding boxes of the objects.
+\begin{equation}
+\label{eq:EcApprox}
+E_c(l_i,l_j)=\sum_{x,y,t \in t_i \cap t_j} IU \left( B_i(t),B_j(t) \right),
+\end{equation}
+\begin{equation}
+IU(B_i,B_j)=\frac{B_i \cap B_j}{B_i \cup B_j},
+\end{equation}
+where $B_i(t)$ and $B_j(t)$ are bounding boxes of $i^{\rm{th}}$ and $j^{\rm{th}}$ objects at frame $t$, respectively. Since the bounding box does not represent an exact location of the object, (\ref{eq:EcApprox}) can be thought as an approximated version of (\ref{eq:Ec}).
+
+% 2019-04-28
+\subsection{Computational bottleneck}
+In (\ref{eq:basic_form}), we should note that energies can be categorized into two groups regarding the number of required parameters: unary and pairwise. Activity and background consistency only requires a single object tube to calculate the energies; on the other hand, remaining energies require two object tubes for the calculation. When the number of objects to optimize increases, pairwise energy terms become a bottleneck of the computation. Since $E_s$ is not the main concern of online video synopsis, $E_c$ becomes the one and only issue for the computational burden. As described in Section~\ref{sec:intro:related}, recent studies of video synopsis~\ref{} utilize different calculations of $E_c$, but their definitions of the collision energy are not suitable for parallel processing. In Section~\ref{sec:rearr}, a new representation of the object tube named as an occupation matrix which has a suitable form for concurrent computation of $E_c$ will be introduced.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\linewidth]{flowchart.png}
+\includegraphics[height=0.8\textheight]{flowchart.pdf}
 \end{center}
 \caption{Flowchart of the proposed online video synopsis framework. At the beginning, foreground of the object tube is reshaped into the 3D occupation matrix. We use this matrix representation to calculate the collision cost fast in conjunction with parallel processing and Fourier transform. Afterwards, we determine optimal starting labels for tubes and stitch tubes with the background to generate a resulting synopsis video.}
 \label{fig:flowchart}
 \end{figure}
 
-\section{Tube rearrangement}
+\section{Proposed tube rearrangement}
 \label{sec:rearr}
-In this sections, the detailed steps of the proposed tube rearrangement algorithm are introduced. Especially, characteristics for two types of occupation matrices (binary and probabilistic) are discussed in Section~\ref{sec:occ_mat_gen}. Then, the reformulated objective function defined on the occupation matrices are described as well as the proposed novel concurrent optimization algorithm. A flowchart of the proposed framework including the tube rearrangement algorithm is illustrated in Fig.~\ref{fig:flowchart}.
+In this section, the definition of $E_c$ is reformulated using the occupation matrix and an efficient tube rearrangement algorithm for optimizing the objective function is proposed. In addition, two types of the occupation matrix (binary and probabilistic) are introduced and their characteristics are explained in detail. A flowchart of the proposed online video synopsis framework including the tube rearrangement algorithm is illustrated in Fig.~\ref{fig:flowchart}.
 
 \subsection{Occupation matrix generation}
 \label{sec:occ_mat_gen}

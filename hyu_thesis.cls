@@ -34,3 +34,26 @@
 \renewcommand{\bibname}{\largefont BIBLIOGRAPHY}
 
 \renewcommand{\figurename}{Fig.}
+
+\makeatletter
+
+\newcommand\frontmatter
+{
+		\cleardoublepage
+		\pagenumbering{roman}
+}
+\newcommand\mainmatter
+{
+		\cleardoublepage
+		\pagenumbering{arabic}
+}
+\newcommand\backmatter
+{
+		\if@openright
+		\cleardoublepage
+		\else
+		\clearpage
+		\fi
+}
+
+\makeatother
