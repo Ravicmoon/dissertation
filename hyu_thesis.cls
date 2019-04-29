@@ -3,7 +3,7 @@
 \LoadClass{report}
 
 \usepackage{geometry}
-\geometry{a4paper, total={210mm,297mm}, left=35mm, right=35mm, top=38mm, bottom=38mm, head=15mm, foot=15mm}
+\geometry{a4paper, left=35mm, right=35mm, top=53mm, bottom=53mm, head=15mm, foot=15mm}
 \linespread{2.0}
 \usepackage[pdftex]{graphicx}
 \usepackage[caption=false,font=normalsize]{subfig}
@@ -14,8 +14,8 @@
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \usepackage{cite}
-\usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{lmodern}
 
 \newcommand{\largefont}{\fontsize{16}{\baselineskip}\selectfont}
 \newcommand{\mediumfont}{\fontsize{13}{\baselineskip}\selectfont}
