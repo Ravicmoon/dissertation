@@ -6,17 +6,25 @@
 \geometry{a4paper, left=35mm, right=35mm, top=53mm, bottom=53mm, head=15mm, foot=15mm}
 \linespread{2.0}
 \usepackage[pdftex]{graphicx}
+\usepackage{rotating}
 \usepackage[caption=false,font=normalsize]{subfig}
 \usepackage[labelsep=period]{caption}
 \usepackage{amsmath}
 \usepackage{commath}
+\usepackage{mathtools}
 \usepackage{algorithmic, algorithm}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \usepackage{cite}
 \usepackage{cleveref}
 \usepackage{lmodern}
+\usepackage{amsfonts}
 
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter\round{\lfloor}{\rceil}
+
+\newcommand{\etal}{\textit{et al}.}
 \newcommand{\largefont}{\fontsize{16}{\baselineskip}\selectfont}
 \newcommand{\mediumfont}{\fontsize{13}{\baselineskip}\selectfont}
 
