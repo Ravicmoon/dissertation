@@ -59,7 +59,7 @@ The rest of the dissertation is organized as follows. Section \ref{sec:basic_for
 
 In this section, the basic formulation of video synopsis introduced in the pioneering works~\cite{Rav-Acha2006,Pritch2007,Pritch2008} is described to show which part of the formulation has to be changed for parallel processing. In addition, the reason why online video synopsis mainly considers collision energy is explained in detail.
 
-As in Fig.~\ref{fig:video_synopsis}, a principal objective of video synopsis is shortening length of the input video by relocating object tubes in temporal domain. In other words, we try to find the best combination of object tubes' starting positions in temporal domain (starting labels). In the field of video surveillance, a definition of the best combination can be different from specific applications. However, based on the paper of Pritch~\etal~\cite{Pritch2008}, the condensed video with the best starting label combination should have following characteristics.
+As in Fig.~\ref{fig:video_synopsis} and Fig.~\ref{fig:video_synopsis_2d}, a principal objective of video synopsis is shortening length of the input video by relocating object tubes in temporal domain. In other words, we try to find the best combination of object tubes' starting positions in temporal domain (starting labels). In the field of video surveillance, a definition of the best combination can be different from specific applications. However, based on the paper of Pritch~\etal~\cite{Pritch2008}, the condensed video with the best starting label combination should have following characteristics.
 \begin{itemize}
 \item Objects of interests should be appeared in the condensed video.
 \item Rearranged object tubes should seamlessly rendered in the condensed video.
@@ -69,11 +69,19 @@ As in Fig.~\ref{fig:video_synopsis}, a principal objective of video synopsis is 
 To achieve the characteristics, the batch video synopsis~\cite{Pritch2008} utilizes four energy terms as described in Section~\ref{sec:intro}: activity, background consistency, collision, and temporal consistency. The order of the energy terms are matched with that of the characteristics.
 
 \begin{figure}
-\begin{center}
-\includegraphics[width=\linewidth]{video_synopsis.eps}
-\end{center}
-\caption{A concept diagram of video synopsis~\cite{Pritch2009}. The bird and man appeared at different time in the original video are rearranged in temporal domain, and then displayed simultaneously in the condensed video.}
-\label{fig:video_synopsis}
+	\begin{center}
+		\includegraphics[width=\linewidth]{video_synopsis.eps}
+	\end{center}
+	\caption{Concept diagram of video synopsis~\cite{Pritch2009}. The bird and man appeared at different time in the original video are rearranged in temporal domain, and then displayed simultaneously in the condensed video.}
+	\label{fig:video_synopsis}
+\end{figure}
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=\linewidth]{video_synopsis_2d.pdf}
+	\end{center}
+	\caption{Example of the object tube rearrangement in 2D space. Red arrows indicate some offsets of the starting labels for better understanding of the tube rearrangement process. We can see that after the tube rearrangement, the length of the condensed video becomes much shorter than that of the original.}
+	\label{fig:video_synopsis_2d}
 \end{figure}
 
 Assume that $L=\{l_0,...,l_N\}$ is a set of starting labels for $N$ object tubes; then, an objective function $E(L)$ can be defined as
@@ -81,7 +89,7 @@ Assume that $L=\{l_0,...,l_N\}$ is a set of starting labels for $N$ object tubes
 \label{eq:basic_form}
 E(L)=\sum_{l_i \in L} \left( E_a(l_i) + \gamma E_s(l_i) \right) + \sum_{l_i,l_j \in L} \left( \alpha E_t(l_i, l_j) + \beta E_c(l_i, l_j) \right),
 \end{equation}
-where $E_a$, $E_s$, $E_t$, and $E_c$ are activity, background consistency, temporal consistency, and collision energies, respectively. In addition, $\alpha$, $\beta$, and $\gamma$ are weight parameters for controlling importance between the energies.
+where $E_a$, $E_s$, $E_t$, and $E_c$ are activity, background consistency, temporal consistency, and collision energies, respectively. In addition, $\alpha$, $\beta$, and $\gamma$ are weighting parameters for controlling importance between the energies.
 
 \subsection{Activity energy}
 At first, $E_a$ defines which object tubes should be appeared in the condensed video. One example of $E_a$ is
@@ -106,7 +114,6 @@ where $I_i(x,y,t)$ is a foreground pixel of $i^{\rm{th}}$ object and $B(x,y,t)$ 
 
 Defining a proper $E_a$ is important for processing the query of the video synopsis users, since it determines which objects will be included in the resulting video. However, we do not have to directly optimize $E_a$ because object filtering step prior to the optimization with specific conditions (e.g., colors, trajectories, object types, and etc) can do the same functionality.
 
-% 2019-04-25
 \subsection{Time-lapse background generation}
 Before moving on to the next energy term, how to generate time-lapse background is briefly explained. Since the main objective of video synopsis is condensing the contents of the original video, background information as well as foreground has be condensed too. If the input video is 12 hours long and the condensed video is 10 minutes long, time-lapse background can be generated by uniformly subsampling every 720th of original background images or we can use the adaptive sampling rate proportional to (or inverse proportional to) the number of objects in the current frame~\cite{}. An example of the time-lapse background generation is illustrated in Fig.~\ref{}.
 
@@ -132,9 +139,9 @@ where $d(i,j,t)$ is a Euclidean distance between the closest pixels of $i^{\rm{t
 On the other hand, if the objects do not have any overlap in the temporal domain of the original video, $p_I(i,j)$ is defined as
 \begin{equation}
 \label{eq:prob_not_share_time}
-p_I(i,j)=\exp\left(-\frac{l_j - (l_i + N_i)}{\sigma_t}\right),
+p_I(i,j)=\exp\left(-\frac{l_j - (l_i + T_i)}{\sigma_t}\right),
 \end{equation}
-where $N_i$ is the number of frames in the $i^{\rm{th}}$ object tube and $\sigma_t$ determines a temporal proximity between the objects. In addition, (\ref{eq:prob_not_share_time}) is defined on the assumption that the $i^{\rm{th}}$ object appears earlier than the $j^{\rm{th}}$ object in the input video ($l_i + N_i < l_j$). Therefore, the object tubes located far from each other in temporal domain are less likely to have interactions.
+where $T_i$ is the number of frames in the $i^{\rm{th}}$ object tube and $\sigma_t$ determines a temporal proximity between the objects. In addition, (\ref{eq:prob_not_share_time}) is defined on the assumption that the $i^{\rm{th}}$ object appears earlier than the $j^{\rm{th}}$ object in the input video ($l_i + T_i < l_j$). Therefore, the object tubes located far from each other in temporal domain are less likely to have interactions.
 
 In summary, (\ref{eq:prob_share_time}) and (\ref{eq:prob_not_share_time}) encode the idea that objects close in spatio-temporal domain have strong interactions. Based on the two equations, we can define $E_t$ to keep chronological orders between the objects when generating the condensed video.
 \begin{equation}
@@ -148,7 +155,7 @@ C & \rm{otherwise},
 \end{equation}
 where $\hat{l}$ indicates a starting label of the object in the input video and $C$ is a large constant value to penalize the objects having temporal inconsistencies. 
 
-Since the behavior of the equation (\ref{eq:Et}) is not straight forward, detail explanations will be given through examples. Assume that two objects are close in spatio-temporal domain of the original video. In this case, $E_t$ of two objects becomes very large (due to $C$), when their relative starting label in the condensed video ($l_i - l_j$) is not exactly same as in the input video ($\hat{l}_i - \hat{l}_j$). Conversely, the objects far from each other in spatio-temporal domain have a low penalty for violating the condition ($\hat{l}_i - \hat{l}_j = l_i - l_j$), because their $p_I$ has a small value.
+Since the behavior of the equation (\ref{eq:Et}) is not straightforward, detail explanations will be given through examples. Assume that two objects are close in spatio-temporal domain of the original video. In this case, $E_t$ of two objects becomes very large (due to $C$), when their relative starting label in the condensed video ($l_i - l_j$) is not exactly same as in the input video ($\hat{l}_i - \hat{l}_j$). Conversely, the objects far from each other in spatio-temporal domain have a low penalty for violating the condition ($\hat{l}_i - \hat{l}_j = l_i - l_j$), because their $p_I$ has a small value.
 
 As similar to $E_s$, the role of $E_t$ is not significant in online video synopsis. Recent online video synopsis frameworks~\cite{} maintain a queue of object tubes and the queue grows as new object tube is extracted in the input video. When the size of the queue exceeds a certain threshold $K$, framework generates a partial condensed video with $K$ object tubes, and then removes the first $K$ objects from the queue. Based on the framework, chronological disorders only can be presented when the objects are in the same part of the condensed video. Even if the objects are optimized together to generate a same part of the resulting synopsis video, their temporal inconsistencies are negligible, because their relative spatio-temporal distance is small. In consequence, the one and only energy term to optimize in online video synopsis is the collision energy.
 
@@ -174,7 +181,7 @@ In (\ref{eq:basic_form}), we should note that energies can be categorized into t
 
 \begin{sidewaysfigure}
 \includegraphics[width=\linewidth]{flowchart.pdf}
-\caption{Flowchart of the proposed online video synopsis framework. At the beginning, foreground of the object tube is reshaped into the 3D occupation matrix. We use this matrix representation to calculate the collision energy fast in conjunction with parallel processing and Fourier transform. Afterwards, we determine optimal starting labels for tubes and stitch tubes with the background to generate a resulting synopsis video.}
+\caption{Flowchart of the proposed online video synopsis framework. At the beginning, foreground of the object tube is reshaped into the 3D occupation matrix. We use this matrix representation to calculate the collision energy fast in conjunction with parallel processing and Fourier transform. Afterwards, we determine optimal starting labels for tubes and stitch tubes with the background to generate a resulting synopsis video. Illustrations of man and vehicle in this figure are created by Lluisa Iborra and Yasser Megahed from the Noun Project.}
 \label{fig:flowchart}
 \end{sidewaysfigure}
 
@@ -209,8 +216,15 @@ X(u)=\left\{ x \;\middle|\; \round*{\frac{W}{N}u} \leq x < \round*{\frac{W}{N}\l
 Y(v)=\left\{ y \;\middle|\; \round*{\frac{M}{H}v} \leq y < \round*{\frac{M}{H}\left( v + 1 \right)} \right\}.
 \end{equation}
 
-Due to the condition $\left( \sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t) \neq 0 \right)$ in (\ref{eq:bin_occ}), even a single pixel of $\textbf{F}_i(x,y,t)$ can produce a response in $\textbf{M}_i^b(u,v,t)$. Therefore, $\textbf{M}_i^b$ exaggerates the occupation region of the object tube in the video sequence. An example of the binary occupation matrix generation is depicted in Fig.~\ref{}.
+Due to the condition $\left( \sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t) \neq 0 \right)$ in (\ref{eq:bin_occ}), even a single pixel of $\textbf{F}_i(x,y,t)$ can produce a response in $\textbf{M}_i^b(u,v,t)$. Therefore, $\textbf{M}_i^b$ exaggerates the occupation region of the object tube in the video sequence. An example of the binary occupation matrix generation is depicted in Fig.~\ref{fig:bin_occ}.
 
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=0.7\linewidth]{bin-occ.pdf}
+	\end{center}
+	\caption{Example of the binary occupation matrix generation when $W/N=16$ and $H/M=9$. The foreground and background of the object are represented in black and white, respectively. Dotted lines in the figure are depicted to show contours of the original object for the readers. Illustrations of the woman and man in this figure are created by Nataliia Lytvyn and Ludovic Gicqueau from the Noun Project, respectively.}
+	\label{fig:bin_occ}
+\end{figure}
 
 \subsubsection{Probabilistic occupation matrix}
 \label{sec:proposed:occ:prob}
@@ -219,40 +233,43 @@ Since the probabilistic occupation matrix, $\textbf{M}_i^p$, represents the exis
 \label{eq:prob_occ}
 \textbf{M}_i^p(u,v,t)= \frac{\sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t)}{|C(u,v)|}.
 \end{equation}
+where $|C(u,v)|$ is a cardinality of $C(u,v)$. In most cases, where $W/N \in \mathbb{N}$ and $H/M \in \mathbb{N}$, $|C(u,v)|$ becomes a constant value.
 
-Based on (\ref{eq:prob_occ}), more 1 value of $\textbf{F}_i$ at coordinates in $C(u,v)$
-
-\subsubsection{}
- Therefore, this representation provides coarse information about the object's positions in the video, and allows the calculation the collision energy between the object tubes efficiently. The type of the occupation matrix is determined 
+\subsubsection{Binary vs. probabilistic}
+The main role of the occupation matrix is to provide a spatial approximation of $\textbf{F}_i$. Since both representations can achieve the objective, selecting the type of the occupation matrix is same as considering the trade-off between the accuracy and computation time. In general, using $\textbf{M}_i^p$ can produce more compact synopsis video with more computational burden. On the other hand, the scene in the condensed video based on $\textbf{M}_i^b$ is less complex and can be generated with less computation. Quantitative evaluations regarding the type of the occupation matrix will be given in Section~\ref{sec:exp}.
 
 \subsection{Objective function}
-To generate more condensed and less complicated synopsis videos, collisions between object tubes as well as the length of the synopsis video are considered simultaneously during the tube rearrangement. Assume that the $i^\textrm{\tiny{th}}$ and $j^\textrm{\tiny{th}}$ object tubes have starting labels of $l_i$ and $l_j$ in the synopsis video. A collision energy between two objects $E_C (l_i,l_j)$ is defined as a sum of element-wise multiplications of $\textbf{M}_i$ and $\textbf{M}_j$.
+For the next step, the collision energy is reformulated with the occupation matrix and a new energy term $E_l$ is introduced to penalize a long condensed video. Then, the final objective function of the proposed tube rearrangement algorithm is defined by considering both $E_c$ and $E_l$. 
+
+\subsubsection{Reformulated collision energy}
+The motivation behind the reformulation of $E_c$ is that the degree of collision between the objects at a certain frame can be calculated as a sum of the element-wise multiplication of two occupation matrices. An example of this computation is depicted in Fig~\ref{} and the redefined $E_c(l_i,l_j)$ is given by
 \begin{equation}
 \label{eq:collision_cost}
-E_C(l_i,l_j) = \sum_{u=1}^{M}\sum_{v=1}^{N}\sum_{t=t_\textrm{\tiny{min}}}^{t_\textrm{\tiny{max}}} \textbf{M}_i(u,v,t)\textbf{M}_j(u,v,t),
+E_c(l_i,l_j) = \sum_{u=1}^{M}\sum_{v=1}^{N}\sum_{t=t_{\rm{min}}}^{t_{\rm{max}}} \textbf{M}_i(u,v,t)\textbf{M}_j(u,v,t),
 \end{equation}
-where $t_\textrm{\tiny{min}}$ and $t_\textrm{\tiny{max}}$ are minimum and maximum values of the overlapped temporal domain. Detailed calculations of $t_\textrm{\tiny{min}}$ and $t_\textrm{\tiny{max}}$ are
+where $t_{\rm{min}}$ and $t_{\rm{max}}$ are minimum and maximum values of the overlapped temporal domain. Detailed calculations of $t_{\rm{min}}$ and $t_{\rm{max}}$ are
 \begin{equation}
 \label{eq:t_min}
-t_\textrm{\tiny{min}} = \max(l_i, l_j),
+t_{\rm{min}} = \max(l_i, l_j),
 \end{equation}
 \begin{equation}
 \label{eq:t_max}
-t_\textrm{\tiny{max}} = \min(T_i + l_i, T_j + l_j),
+t_{\rm{max}} = \min(T_i + l_i, T_j + l_j),
 \end{equation}
-where $T_i$ and $T_j$ are frame lengths of the $i^\textrm{\tiny{th}}$ and $j^\textrm{\tiny{th}}$ object tubes, respectively.
+where $T_i$ and $T_j$ are frame lengths of the $i^{\rm{th}}$ and $j^{\rm{th}}$ object tubes, respectively.
 
-A length energy $E_L (l_i,l_j)$ is defined as the frame length of the synopsis video when two object tubes have starting labels of $l_i$ and $l_j$.
+\subsubsection{Length energy}
+Apart from the existing video synopsis frameworks~\cite{} using the fixed length of the synopsis video, the proposed framework adaptively adjusts the length of the condensed video by considering both compactness and complexity. In this regard, the length energy $E_l (l_i,l_j)$ is defined as the frame length of the synopsis video when two object tubes have starting labels of $l_i$ and $l_j$.
 \begin{equation}
 \label{eq:length_cost}
-E_L(l_i, l_j) = \max(T_i + l_i, T_j + l_j) - \min(l_i, l_j).
+E_l(l_i, l_j) = \max(T_i + l_i, T_j + l_j) - \min(l_i, l_j).
 \end{equation}
 An objective function $E(l_i,l_j)$ is calculated as a weighted sum of the collision and length energies.
 \begin{equation}
 \label{eq:obj_func}
 E(l_i, l_j) = E_C(l_i, l_j) + \lambda E_L(l_i, l_j),
 \end{equation}
-where $\lambda$ is a weighting parameter adjusting the importance of the length energy. The larger $\lambda$ generates the shorter synopsis video.
+where $\lambda$ is a weighting parameter adjusting the importance of the length energy. In general, the larger $\lambda$ generates the shorter but more complex synopsis video; on the other hand, the smaller $\lambda$ produces the longer but less confused condensed video.
 
 \subsection{Optimizing objective function}
 As in other online video synopsis algorithms, the proposed tube rearrangement algorithm adopts the stepwise optimization strategy; therefore, starting labels of the object tubes are determined one by one through iterations. At the $i^\textrm{\tiny{th}}$ iteration of the optimization, the starting label of $i^\textrm{\tiny{th}}$ object tube $l_i$ is determined as
