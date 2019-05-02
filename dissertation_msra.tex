@@ -195,7 +195,7 @@ Each element of the occupation matrix $\textbf{M}_i (u,v,t)$ is either from Bool
 
 \subsubsection{Binary occupation matrix}
 \label{sec:proposed:occ:binary}
-The binary occupation matrix, $\textbf{M}^b$, does not allow gray area value to represent the existence of objects; it can only have 1s and 0s. Let assume that the foreground mask of the $i^{\rm{th}}$ object is denoted as $\textbf{F}_i(x,y,t) \in \mathbb{B}$; then, $\textbf{M}_i^b(u,v,t)$ is defined as
+The binary occupation matrix $\textbf{M}^b$ does not allow gray area value to represent the existence of objects; it can only have 1s and 0s. Let assume that the foreground mask of the $i^{\rm{th}}$ object is denoted as $\textbf{F}_i(x,y,t) \in \mathbb{B}$; then, $\textbf{M}_i^b(u,v,t)$ is defined as
 \begin{equation}
 \label{eq:bin_occ}
 \textbf{M}_i^b(u,v,t)=
@@ -204,7 +204,7 @@ The binary occupation matrix, $\textbf{M}^b$, does not allow gray area value to 
 0 & \rm{otherwise},
 \end{cases}
 \end{equation}
-where $C(u,v)$ is a set of 2D coordinates $(x,y)$. Based on (\ref{eq:bin_occ}), to calculate a single element of $\textbf{M}_i^b$, we need to examine the value of $\textbf{F}_i$ for every coordinate in $C(u,v)$. The definition of $C(u,v)$ is given by
+where $C(u,v)$ is a set of 2D coordinates $(x,y)$. Based on (\ref{eq:bin_occ}), to calculate a single element of $\textbf{M}_i^b$, we need to examine the values of $\textbf{F}_i$ for every coordinate in $C(u,v)$. The definition of $C(u,v)$ is given by
 \begin{equation}
 C(u,v)=\left\{ (x,y) \mid x \in X(u), y \in Y(v) \right\},
 \end{equation}
@@ -228,7 +228,7 @@ Due to the condition $\left( \sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t) \neq 0 \
 
 \subsubsection{Probabilistic occupation matrix}
 \label{sec:proposed:occ:prob}
-Since the probabilistic occupation matrix, $\textbf{M}_i^p$, represents the existence of the object tube with continuous value, it can provide more precise information than $\textbf{M}_i^b$. Each element of $\textbf{M}_i^p$ is calculated as
+Since the probabilistic occupation matrix $\textbf{M}_i^p$ represents the existence of the object tube with continuous values, it can provide more precise information than $\textbf{M}_i^b$. Each element of $\textbf{M}_i^p$ is calculated as
 \begin{equation}
 \label{eq:prob_occ}
 \textbf{M}_i^p(u,v,t)= \frac{\sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t)}{|C(u,v)|}.
@@ -240,11 +240,15 @@ The main role of the occupation matrix is to provide a spatial approximation of 
 
 \subsection{Objective function}
 For the next step, the collision energy is reformulated with the occupation matrix and a new energy term $E_l$ is introduced to penalize a long condensed video. Then, the final objective function of the proposed tube rearrangement algorithm is defined by considering both $E_c$ and $E_l$. 
-
+\begin{sidewaysfigure}
+	\includegraphics[width=0.8\linewidth]{hadamard-prod.pdf}
+	\caption{Example calculation of reformulated collision energy $E_c$ with two binary occupation matrices. Occupied elements in the matrix are colored in red and blue. After the element-wise multiplication, we can see that the objects have two collided elements colored in magenta. In this figure, $\odot$ is an operator for the element-wise multiplication, also known as Hadamard product~\cite{}.}
+	\label{fig:hadamard_prod}
+\end{sidewaysfigure}
 \subsubsection{Reformulated collision energy}
-The motivation behind the reformulation of $E_c$ is that the degree of collision between the objects at a certain frame can be calculated as a sum of the element-wise multiplication of two occupation matrices. An example of this computation is depicted in Fig~\ref{} and the redefined $E_c(l_i,l_j)$ is given by
+The motivation behind the reformulation of $E_c$ is that the degree of collision between the objects at a certain frame can be calculated as a sum of the element-wise multiplication of two occupation matrices. An example of this computation is depicted in Fig~\ref{fig:hadamard_prod} and the redefined $E_c(l_i,l_j)$ is given by
 \begin{equation}
-\label{eq:collision_cost}
+\label{eq:EcNew}
 E_c(l_i,l_j) = \sum_{u=1}^{M}\sum_{v=1}^{N}\sum_{t=t_{\rm{min}}}^{t_{\rm{max}}} \textbf{M}_i(u,v,t)\textbf{M}_j(u,v,t),
 \end{equation}
 where $t_{\rm{min}}$ and $t_{\rm{max}}$ are minimum and maximum values of the overlapped temporal domain. Detailed calculations of $t_{\rm{min}}$ and $t_{\rm{max}}$ are
@@ -261,119 +265,103 @@ where $T_i$ and $T_j$ are frame lengths of the $i^{\rm{th}}$ and $j^{\rm{th}}$ o
 \subsubsection{Length energy}
 Apart from the existing video synopsis frameworks~\cite{} using the fixed length of the synopsis video, the proposed framework adaptively adjusts the length of the condensed video by considering both compactness and complexity. In this regard, the length energy $E_l (l_i,l_j)$ is defined as the frame length of the synopsis video when two object tubes have starting labels of $l_i$ and $l_j$.
 \begin{equation}
-\label{eq:length_cost}
+\label{eq:El}
 E_l(l_i, l_j) = \max(T_i + l_i, T_j + l_j) - \min(l_i, l_j).
 \end{equation}
 An objective function $E(l_i,l_j)$ is calculated as a weighted sum of the collision and length energies.
 \begin{equation}
 \label{eq:obj_func}
-E(l_i, l_j) = E_C(l_i, l_j) + \lambda E_L(l_i, l_j),
+E(l_i, l_j) = E_c(l_i, l_j) + \lambda E_L(l_i, l_j),
 \end{equation}
 where $\lambda$ is a weighting parameter adjusting the importance of the length energy. In general, the larger $\lambda$ generates the shorter but more complex synopsis video; on the other hand, the smaller $\lambda$ produces the longer but less confused condensed video.
 
 \subsection{Optimizing objective function}
-As in other online video synopsis algorithms, the proposed tube rearrangement algorithm adopts the stepwise optimization strategy; therefore, starting labels of the object tubes are determined one by one through iterations. At the $i^\textrm{\tiny{th}}$ iteration of the optimization, the starting label of $i^\textrm{\tiny{th}}$ object tube $l_i$ is determined as
+As in other online video synopsis algorithms~\cite{}, the proposed tube rearrangement algorithm adopts the stepwise optimization strategy; therefore, starting labels of the object tubes are determined one by one through iterations. At the $i^{\rm{th}}$ iteration of the optimization, the starting label of $i^{\rm{th}}$ object tube $l_i$ is determined as
 \begin{equation}
 \label{eq:starting_label}
 l_i = \arg\min_l E(l, L_{i-1}) \textrm{ subject to } l_i \geq 0,
 \end{equation}
-where $L_{i-1} = \{ {l}_{1},...,{l}_{i-1} \}$ is a set of starting labels determined after $i-1$ iterations. A constraint to the optimization ${l}_{i} \geq 0$ is used to alleviate chronological disorder in the synopsis video. In other words, since a negative $l_i$ means that ${i}^\textrm{\tiny{th}}$ tube appear prior to the first tube in the synopsis video, preventing such case increases a chance to keep chronological order of the tubes. To minimize~(\ref{eq:starting_label}), an occupation matrix $\textbf{M}_{i-1}^{*}$ corresponding to a label set $L_{i-1}$ is required, where each element of $\textbf{M}_{i-1}^{*}$  satisfies the following equation.
+where $L_{i-1} = \{ {l}_{1},...,{l}_{i-1} \}$ is a set of starting labels determined after $i-1$ iterations. A constraint to the optimization ${l}_{i} \geq 0$ is used to alleviate chronological disorder in the synopsis video. In other words, since a negative $l_i$ means that $i^{\rm{th}}$ tube appear prior to the first tube in the synopsis video, preventing such case increases a chance to keep chronological order of the tubes. 
+
+Due to the stepwise optimization strategy, one of two input arguments for $E$ in (\ref{eq:starting_label}) becomes $L_{i-1}$ instead of a single label as described in (\ref{eq:obj_func}). In consequence, slight modifications of (\ref{eq:EcNew}) and (\ref{eq:El}) are necessary. For the stepwise optimization, the calculation of $E_c$ is modified as
 \begin{equation}
-\label{eq:occ_mat_update}
+\label{eq:EcStepwise}
+E_c(l_i,L_{i-1}) = \sum_{u=1}^{M}\sum_{v=1}^{N}\sum_{t=t_{\rm{min}}^{*}}^{t_{\rm{max}}^{*}} \textbf{M}_i(u,v,t)\textbf{M}_{i-1}^{*}(u,v,t),
+\end{equation}
+where $\textbf{M}_{i-1}^{*}$ is an accumulated occupation matrix for $i-1$ iterations, and $t_{\rm{min}}^{*}$ and $t_{\rm{max}}^{*}$ are minimum and maximum bounds of shared temporal domain between $\textbf{M}_i$ and $\textbf{M}_{i-1}^{*}$. Moreover, each element of $\textbf{M}_{i-1}^{*}$ is defined in the recurrence relation as
+\begin{equation}
+\label{eq:acc_occ}
 \textbf{M}_{i-1}^{*}(u, v, t) = \textbf{M}_{i-1}(u, v, t - l_{i-1}) + \textbf{M}_{i-2}^{*}(u, v, l_{i-2}^{*}),
 \end{equation}
-where $l_{i-2}^{*} = \min L_{i-2}$. For the initial condition of~(\ref{eq:occ_mat_update}), $\textbf{M}_{1}^{*} = \textbf{M}_{1}$ and $l_{1}^{*} = l_{1} = 0$ are used. As shown in~(\ref{eq:occ_mat_update}), $\textbf{M}_{i}^{*}$ can represent collisions of multiple object tubes (more than two) because $\textbf{M}_{i}^{*} \in \rm I\!R$. 
-
-\begin{algorithm}[t]
-\caption{Proposed tube rearrangement algorithm}
-\label{alg:proposed}
-
-\begin{algorithmic}
-\REQUIRE $\textbf{M}_{i}, i = 1,...,N$
-\ENSURE $L_{N} = \{ l_{1},...,l_{N} \}$
-
-\STATE $\textbf{M}_{1}^{*} = \textbf{M}_{1}$, $l_{1}^{*} = l_{1} = 0$, $L_{1} = \{ l_{1} \}$
-
-\FOR {$i = 2$ to $N$}
-	\STATE Calculate $\textbf{M}_{i} \star \textbf{M}_{i-1}^{*}$ using FFT and parallel processing
-	\STATE Find a local optimum starting label $l_{i}$ by using~(\ref{eq:starting_label})
-	\iffalse
-	\STATE $l_{i} = \arg\min_{l} E(l, L_{i-1})$ subject to $l_{i} \geq 0$
-	\fi
-	\STATE Calculate $\textbf{M}_{i}^{*}$ from $\textbf{M}_{i}$ and $\textbf{M}_{i-1}^{*}$ by using~(\ref{eq:occ_mat_update})
-	\iffalse
-	\STATE $\textbf{M}_{i}^{*}(u, v, t) = \textbf{M}_{i}(u, v, t-l_{i}) + \textbf{M}_{i-1}^{*}(u, v, t-l_{i-1}^{*})$
-	\fi
-	\STATE $L_{i} = L_{i-1} \cup l_{i}$
-	\STATE $l_{i}^{*} = \min L_{i}$
-\ENDFOR
-
-\RETURN $L_{N}$
-\end{algorithmic}
-
-\end{algorithm}
-
-\subsection{Parallelized collision cost calculation}
-During the optimization, the collision energy computation becomes a bottleneck for performance because the collision energy needs to be evaluated for every possible $l$ value. To restrict a range of $l$ values, let us assume that two occupation matrices overlap by at least one frame in the temporal domain. Under this restriction,~(\ref{eq:collision_cost}) is simplified by adopting a cross-correlation of two occupation matrices in the temporal domain as
+where $l_{i-2}^{*} = \min L_{i-2}$. For the initial condition of~(\ref{eq:acc_occ}), $\textbf{M}_{1}^{*} = \textbf{M}_{1}$ and $l_{1}^{*} = l_{1} = 0$ are used. Formal definitions of $t_{\rm{min}}^{*}$ and $t_{\rm{max}}^{*}$ are
 \begin{equation}
-\label{eq:collision_cost_pp}
+t_{\rm{min}}^{*} = \max(l_i, l_{i-1}^{*})
+\end{equation}
+and
+\begin{equation}
+t_{\rm{max}}^{*} = \min(T_i + l_i, T_{i-1}^{*} + l_{i-1}^{*}),
+\end{equation}
+where $T_{i-1}^{*}$ is a frame length of $\textbf{M}_{i-1}^{*}$. The length energy for the stepwise optimization is defined as
+\begin{equation}
+E_l(l_i,L_{i-1})=\max(T_i+l_i,T_{i-1}^{*}+l_{i-1}^{*})-\min(l_i,l_{i-1}^{*}).
+\end{equation}
+\subsubsection{Properties of accumulated occupation matrix}
+For better understanding of the stepwise optimization process, we will discuss about properties of the accumulated occupation matrix $\textbf{M}^{*}$. According to the type, the occupation matrix $\textbf{M}$ can have either Boolean or continuous values in the range from 0 to 1. On the other hand, $\textbf{M}^{*}$ is computed by adding two matrices as described in (\ref{eq:acc_occ}); therefore, each element of $\textbf{M}^{*}$ belongs to either $\mathbb{N}_{0}$ or $\mathbb{R}_{\geq 0}=\left\{ x \in \mathbb{R} \mid x \geq 0  \right\}$. By utilizing $\textbf{M}^{*}$, we can represent occupation and collision states of more than two objects on the single matrix.
+
+\subsection{Parallelized optimization}
+Even though $\textbf{M}$ provides an efficient way of representing the object tubes and $E_c$ can be computed easily with the element-wise multiplication, optimization of $E_c$ can further be accelerated by using both parallel processing and cross-correlation of two occupation matrices in the temporal domain. Prior to define the cross-correlation, let assume that two occupation matrices overlap by at least one frame in the temporal domain. Without this restriction, $E$ needs to be evaluated for every possible $l$ value. Then, the parallelized version of $E_c$ in (\ref{eq:EcStepwise}) is defined as
+\begin{equation}
+\label{eq:EcPP}
 \begin{aligned}
-E_C(l_i, l_j) = \sum_{u=1}^{M} \sum_{v=1}^{N} \textbf{M}_{i} \star \textbf{M}_{j}(u, v, l_i - l_j)\\
-= \sum_{u=1}^{M} \sum_{v=1}^{N} \sum_{t=-\infty}^{\infty} \textbf{M}_{i}\textbf{M}_{j}(u, v, t + l_i - l_j)
+E_c(l_i, L_{i-1}) = \sum_{u=1}^{M} \sum_{v=1}^{N} \textbf{M}_{i} \star \textbf{M}_{i-1}^{*}(u, v, l_i - l_{i-1}^{*}) \\
+= \sum_{u=1}^{M} \sum_{v=1}^{N} \sum_{t=-\infty}^{\infty} \textbf{M}_{i}\textbf{M}_{i-1}^{*}(u, v, t + l_i - l_{i-1}^{*}),
 \end{aligned}
 \end{equation}
+where $\star$ is an operator for the cross-correlation.
 
-As shown in~(\ref{eq:collision_cost_pp}), cross-correlations in the temporal domain are independent to the spatial domain. Therefore, $M \times N$ cross-correlations can be concurrently computed using multi-cores or GPU environments. Also, cross-correlation itself can be calculated efficiently by the FFT~\cite{Oppenheim2009}. A detailed procedure of the proposed tube rearrangement algorithm is presented in Algorithm~\ref{alg:proposed}.
-
+The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP}) is illustrated in Fig.~\ref{fig:Ec_motivation}. From (\ref{eq:EcStepwise}), if we take the spatial coordinate into the consideration first, the 3D element-wise multiplication can be thought as a series of 2D Hadamard products in temporal domain as shown in Fig~\ref{fig:3d_hadamard}. On the other hand, if we consider the temporal domain first, the operation becomes $\mathcal{M} \times \mathcal{N}$ 1D cross-correlations as illustrated in Fig~\ref{fig:1d_cross_corr}. This difference may seem to be minor but it is important when we consider some tricks to accelerate the operation. The computational burden of multiple 1D cross correlations can be reduced by Fast Fourier Transform (FFT)~\cite{Oppenheim2009} in conjunction with parallel processing. A detailed procedure of the proposed tube rearrangement algorithm is presented in Algorithm~\ref{alg:proposed}.
 \begin{figure}
-\centering
-\subfloat[Parking lot square I]
-{\includegraphics[width=0.45\linewidth]{fig/sidewalk.png}}
-\label{fig:sidewalk}
-\subfloat[Parking lot square II]
-{\includegraphics[width=0.45\linewidth]{fig/parking_lot.png}}
-\label{fig:crossroadI}
-\subfloat[Crossroad I]
-{\includegraphics[width=0.45\linewidth]{fig/crossroad01.png}}
-\label{fig:crossroadII}
-\subfloat[Crossroad II]
-{\includegraphics[width=0.45\linewidth]{fig/crossroad02.png}}
-\label{fig:library}
-\subfloat[Library lobby]
-{\includegraphics[width=0.45\linewidth]{fig/library.png}}
-\label{fig:parking_lot}
-\subfloat[Subway station plaza]
-{\includegraphics[width=0.45\linewidth]{fig/subway_entrance.png}}
-\label{fig:subway_entrance}
-\caption{Examples of the test sequences. All sequences were captured at Hanyang university, Seoul, Korea.}
-\label{fig:examples}
+	\centering
+	\subfloat[2D Hadamard products]
+	{
+		\includegraphics[width=\linewidth]{3d-hadamard-prod.pdf}
+		\label{fig:3d_hadamard}
+	}
+	\qquad
+	\subfloat[1D cross-correlations]
+	{
+		\includegraphics[width=\linewidth]{1d-cross-corr.pdf}
+		\label{fig:1d_cross_corr}
+	}
+	\caption{Two ways of calculating $E_c$. All of occupation matrices in this figure have $6 \times 8 \times 3$ spatio-temporal resolution. $E_c$ can be calculated by using \protect\subref{fig:3d_hadamard} Hadamard products between two sets of frames, and \protect\subref{fig:1d_cross_corr} 1D cross correlations between 48 pairs of 1D signals. Three primitive colors (red, green, and blue) in this figure is used to show example correspondences.}
+	\label{fig:Ec_motivation}
 \end{figure}
-
-\begin{table}
-\small
-\begin{center}
-\begin{tabular}{c|l|c|c|c|}
-\cline{2-5}
- & Video Clips & Resolution & \# Frame & \# Tube\\
-\hline
-\multicolumn{1}{|c|}{1} & Parking lot square I & $1280 \times 720$ & 44,057 & 650\\
-\hline
-\multicolumn{1}{|c|}{5} & Parking lot square II & $640 \times 360$ & 107,946 & 271\\
-\hline
-\multicolumn{1}{|c|}{2} & Crossroad I & $640 \times 360$ & 85,766 & 291\\
-\hline
-\multicolumn{1}{|c|}{3} & Crossroad II & $640 \times 360$ & 106,459 & 937\\
-\hline
-\multicolumn{1}{|c|}{4} & Library lobby & $1280 \times 720$ & 49,679 & 316\\
-\hline
-\multicolumn{1}{|c|}{6} & Subway station plaza & $640 \times 360$ & 107,876 & 1038\\
-\hline
-\end{tabular}
-\end{center}
-\caption{List of test sequences used in the experiments}
-\label{tb:video_list}
-\end{table}
-
+\begin{algorithm}[t]
+	\caption{Proposed tube rearrangement algorithm}
+	\label{alg:proposed}
+	\begin{algorithmic}
+		\REQUIRE $\textbf{M}_{i}, i = 1,...,N$
+		\ENSURE $L_{N} = \{ l_{1},...,l_{N} \}$
+		
+		\STATE $\textbf{M}_{1}^{*} = \textbf{M}_{1}$, $l_{1}^{*} = l_{1} = 0$, $L_{1} = \{ l_{1} \}$
+		
+		\FOR {$i = 2$ to $N$}
+		\STATE Calculate $\textbf{M}_{i} \star \textbf{M}_{i-1}^{*}$ using FFT and parallel processing
+		\STATE Find a local optimum starting label $l_{i}$ by using~(\ref{eq:label})
+		\iffalse
+		\STATE $l_{i} = \arg\min_{l} E(l, L_{i-1})$ subject to $l_{i} \geq 0$
+		\fi
+		\STATE Calculate $\textbf{M}_{i}^{*}$ from $\textbf{M}_{i}$ and $\textbf{M}_{i-1}^{*}$ by using~(\ref{eq:acc_occ})
+		\iffalse
+		\STATE $\textbf{M}_{i}^{*}(u, v, t) = \textbf{M}_{i}(u, v, t-l_{i}) + \textbf{M}_{i-1}^{*}(u, v, t-l_{i-1}^{*})$
+		\fi
+		\STATE $L_{i} = L_{i-1} \cup l_{i}$
+		\STATE $l_{i}^{*} = \min L_{i}$
+		\ENDFOR
+		
+		\RETURN $L_{N}$
+	\end{algorithmic}
+\end{algorithm}
 \section{Online video synopsis framework}
 \label{sec:framework}
 The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. 
@@ -381,7 +369,53 @@ The proposed tube rearrangement algorithm is based on the online framework. Simi
 During the background modeling stage, the foreground of the object is separated from the background by a well-known Gaussian mixture model~\cite{Zivkovic2004}. In the object tube generation stage, foregrounds that belong to the same object are associated by using the Hungarian algorithm~\cite{Kuhn1955} to generate the object tubes. Then, the generated object tubes are stored and maintained in a queue. When the size of the queue exceeds $K$, the starting labels of the object tubes in the queue are determined by the tube rearrangement algorithm, and the entire contents of the queue are cleared. After determining the starting labels, the corresponding object tubes are stitched back into the background to generate a small portion of the synopsis video. For a stitching algorithm, the Poisson image editing~\cite{Perez2003} is utilized. 
 
 Because the aforementioned process generates the synopsis video in a stepwise fashion, a discontinuity of motion flow problem~\cite{Fu2014} occurs when merging small portions of the synopsis video into the complete one. This problem can be solved by considering the tails of the object tubes in the previous step during the current rearrangement step.
-
+\begin{figure}
+	\centering
+	\subfloat[Parking lot square I]
+	{\includegraphics[width=0.45\linewidth]{fig/sidewalk.png}}
+	\label{fig:sidewalk}
+	\subfloat[Parking lot square II]
+	{\includegraphics[width=0.45\linewidth]{fig/parking_lot.png}}
+	\label{fig:crossroadI}
+	\subfloat[Crossroad I]
+	{\includegraphics[width=0.45\linewidth]{fig/crossroad01.png}}
+	\label{fig:crossroadII}
+	\subfloat[Crossroad II]
+	{\includegraphics[width=0.45\linewidth]{fig/crossroad02.png}}
+	\label{fig:library}
+	\subfloat[Library lobby]
+	{\includegraphics[width=0.45\linewidth]{fig/library.png}}
+	\label{fig:parking_lot}
+	\subfloat[Subway station plaza]
+	{\includegraphics[width=0.45\linewidth]{fig/subway_entrance.png}}
+	\label{fig:subway_entrance}
+	\caption{Examples of the test sequences. All sequences were captured at Hanyang university, Seoul, Korea.}
+	\label{fig:examples}
+\end{figure}
+\begin{table}
+	\small
+	\begin{center}
+		\begin{tabular}{c|l|c|c|c|}
+			\cline{2-5}
+			& Video Clips & Resolution & \# Frame & \# Tube\\
+			\hline
+			\multicolumn{1}{|c|}{1} & Parking lot square I & $1280 \times 720$ & 44,057 & 650\\
+			\hline
+			\multicolumn{1}{|c|}{5} & Parking lot square II & $640 \times 360$ & 107,946 & 271\\
+			\hline
+			\multicolumn{1}{|c|}{2} & Crossroad I & $640 \times 360$ & 85,766 & 291\\
+			\hline
+			\multicolumn{1}{|c|}{3} & Crossroad II & $640 \times 360$ & 106,459 & 937\\
+			\hline
+			\multicolumn{1}{|c|}{4} & Library lobby & $1280 \times 720$ & 49,679 & 316\\
+			\hline
+			\multicolumn{1}{|c|}{6} & Subway station plaza & $640 \times 360$ & 107,876 & 1038\\
+			\hline
+		\end{tabular}
+	\end{center}
+	\caption{List of test sequences used in the experiments}
+	\label{tb:video_list}
+\end{table}
 \section{Experimental Results}
 \label{sec:exp}
 In this section, the performance of the proposed tube rearrangement algorithm is evaluated by using four metrics: frame condensation ratio (FR), compact ratio (CR), overlap ratio (OR), and running time (RT). The experiments are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_list}. Some examples of the test sequences are depicted in Fig.~\ref{fig:examples}. The experiments are designed to 1) prove the efficiency of the parallelized tube rearrangement and 2) compare performances of several different online tube rearrangement algorithms.
