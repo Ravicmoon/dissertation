@@ -347,7 +347,7 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 		
 		\FOR {$i = 2$ to $N$}
 		\STATE Calculate $\textbf{M}_{i} \star \textbf{M}_{i-1}^{*}$ using FFT and parallel processing
-		\STATE Find a local optimum starting label $l_{i}$ by using~(\ref{eq:label})
+		\STATE Find a local optimum starting label $l_{i}$ by using~(\ref{eq:starting_label})
 		\iffalse
 		\STATE $l_{i} = \arg\min_{l} E(l, L_{i-1})$ subject to $l_{i} \geq 0$
 		\fi
@@ -364,7 +364,7 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 \end{algorithm}
 \section{Online video synopsis framework}
 \label{sec:framework}
-The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. 
+The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks~\cite{}, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. 
 
 During the background modeling stage, the foreground of the object is separated from the background by a well-known Gaussian mixture model~\cite{Zivkovic2004}. In the object tube generation stage, foregrounds that belong to the same object are associated by using the Hungarian algorithm~\cite{Kuhn1955} to generate the object tubes. Then, the generated object tubes are stored and maintained in a queue. When the size of the queue exceeds $K$, the starting labels of the object tubes in the queue are determined by the tube rearrangement algorithm, and the entire contents of the queue are cleared. After determining the starting labels, the corresponding object tubes are stitched back into the background to generate a small portion of the synopsis video. For a stitching algorithm, the Poisson image editing~\cite{Perez2003} is utilized. 
 
