@@ -241,6 +241,7 @@ The main role of the occupation matrix is to provide a spatial approximation of 
 \subsection{Objective function}
 For the next step, the collision energy is reformulated with the occupation matrix and a new energy term $E_l$ is introduced to penalize a long condensed video. Then, the final objective function of the proposed tube rearrangement algorithm is defined by considering both $E_c$ and $E_l$. 
 \begin{sidewaysfigure}
+	\centering
 	\includegraphics[width=0.8\linewidth]{hadamard-prod.pdf}
 	\caption{Example calculation of reformulated collision energy $E_c$ with two binary occupation matrices. Occupied elements in the matrix are colored in red and blue. After the element-wise multiplication, we can see that the objects have two collided elements colored in magenta. In this figure, $\odot$ is an operator for the element-wise multiplication, also known as Hadamard product~\cite{}.}
 	\label{fig:hadamard_prod}
@@ -366,13 +367,57 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 \label{sec:framework}
 The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks~\cite{}, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. Among them, three components, except for the tube rearrangement, will be explained in detail.
 \subsection{Background modeling}
-There are numerous choices for modeling the background, since this field of research has been studied for decades. According to Bouwmans~\etal~\cite{}, deep learning based background modelings can be categorized into three groups: deep encoder-decoder, convolutional neural networks, and generative adversarial network (GAN).
+Since this field of research has been studied for decades, there are numerous choices for modeling the background. According to the recent review literature~\cite{Bouwmans2018}, apart from well-established statistical background modelings~\cite{Zivkovic2004,Zivkovic2006,Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe,Hofmann2012,Muchtar2018}, deep learning based approaches become a main stream of the research and they can be categorized into two broad groups: convolutional neural networks (CNN)~\cite{Patil2018,Lim2018} and generative adversarial network (GAN)~\cite{Bakkay2018,Sultana2019,Sakkos2019}.
 
-Even though deep learning based approaches show better foreground segmentation results than conventional statistical background modeling approaches~\cite{}, their computational burden are hard to be ignored. Therefore, in this dissertation, the proposed framework utilizes a well-known Gaussian mixture model~\cite{Zivkovic2004} to separate the foreground of the objects from the background. In addition, this modeling process can be accelerated by using the GPGPU.
+\begin{sidewaysfigure}
+	\centering
+	\includegraphics[width=0.8\linewidth]{bg_dcnn.png}
+	\caption{Flowchart of foreground segmentation by Lim~\etal~\cite{Lim2018}. It follows the common process of the image segmentation, but its performance has been increased by incorporating feature maps from multiple scales.}
+	\label{fig:bg_dcnn}
+\end{sidewaysfigure}
+Fig.~\ref{fig:bg_dcnn} shows a process of segmenting the foreground from the background introduced by Lim~\etal~\cite{Lim2018}. This process has a lot in common with image segmentation using CNN architecture~\cite{Long2015,Chen2014,Chen2016,Chen2017,Zhao2017,Chen2018}; encoder module is for extracting feature maps and decoder module is for compensating reduced spatial resolution. The key difference between the foreground and image segmentation is the number of output labels; the former produces only two labels while the latter discerns more than 20 labels for renowned PASCAL VOC 2012 dataset~\cite{Everingham15} and 30 labels for Cityscapes dataset targeted for the autonomous driving application~\cite{Cordts2016Cityscapes}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{bg_gan.png}
+	\caption{Recent framework of foreground segmentation via GAN~\cite{Sakkos2019}. It utilizes three generator-discriminator pairs to make foreground segmentation robust against extreme illumination changes. At first, input images undergo the gamma correction to make them in the extreme illumination condition. Red $G_b$ and $D_b$ boxes to generate synthetic bright images from dark images, and to discriminate the synthetic and original ones. On the other hand, blue $G_b$ and $D_b$ boxes do the same task for the bright images. Finally, by using the results of red and blue $G_b$, $G_s$ and $D_s$ are trained to generate and discriminate segmented foregrounds.}
+	\label{fig:bg_gan}
+\end{figure}
+GAN is one of the most actively researched topics in the computer vision. Due to its intriguing idea, many researchers in different field of studies try to solve their problems by using GAN and the problem of modeling background is one of them~\cite{Bakkay2018,Sultana2019,Sakkos2019}. Fig.~\ref{fig:bg_gan} shows a framework of segmenting the foreground with GAN introduced by Sakkos~\etal~\cite{Sakkos2019}. They focus on solving the varying illumination problem in the background modeling and achieve the goal by using a triple multi-task GAN which jointly optimizes the GAN and segmentation losses.
+
+\begin{sidewaystable}
+	\centering
+	\begin{tabular}{llllllllllll}
+		\hline\hline
+		Methods & I\_SL & I\_CA & I\_OC & I\_IL & I\_MB & I\_BS & O\_CL & O\_RA & O\_SN & O\_SU & Average \\
+		\hline\hline
+		Zivkovic~\cite{Zivkovic2006} & 0.9053  & 0.8320 & 0.9507 & 0.2391 & 0.8668 & 0.5308 & 0.8764 & 0.8235 & 0.3804 & 0.7105 & 0.7125 \\
+		\hline
+		Maddalena~\cite{maddalena2008self} & 0.8696 & 0.8463 & 0.9134 & 0.6142 & 0.7617 & 0.4244 & 0.8766 & 0.8412 & 0.5781 & 0.8015 & 0.7525 \\
+		\hline
+		Maddalena~\cite{maddalena2012sobs} & 0.9484 & 0.8573 & 0.9540 & 0.2105 & 0.9122 & 0.4017 & 0.8709 & 0.8472 & 0.8105 & 0.8795 & 0.7692 \\
+		\hline
+		Cuevas~\cite{cuevas2013improved} & 0.7859 & 0.7361 & 0.8527 & 0.7915 & 0.7288 & 0.5836 & 0.8638 & 0.8085 & 0.4555 & 0.7305 & 0.7335 \\
+		\hline
+		Haines~\cite{haines2014background} & 0.8876 & 0.8938 & 0.9223 & 0.8491 & 0.8441 & 0.6809 & 0.8267 & 0.8592 & 0.1735 & 0.8586 & 0.7791 \\
+		\hline
+		Berj{\'o}n~\cite{berjon2018real} & 0.8805 & 0.8444 & 0.7807 & 0.6487 & 0.8873 & 0.6642 & 0.8776 & 0.8165 & 0.7765 & 0.7215 & 0.7914 \\
+		\hline
+		MSFgNet~\cite{Patil2018} & 0.9264 & 0.9213 & 0.9163 & 0.8967 & 0.9143 & 0.7157 & 0.8806 & 0.8659 & 0.8952 & 0.7869 & 0.8717 \\
+		\hline
+	\end{tabular}
+	\caption{Performance comparison of different background estimation methods regarding F-measure on LASIESTA dataset~\cite{cuevas2016labeled}. This table is adopted from the work of Patil~\etal~\cite{Patil2018}. Among them, MSFgNet~\cite{Patil2018} is one and only deep learning based approach and it outperforms other methods with a large margin.}
+	\label{tb:bg_fmeasure}
+\end{sidewaystable}
+As shown in Table~\ref{tb:bg_fmeasure} of Patil~\etal~\cite{Patil2018}, F-measure of the deep learning based approach is superior than those of the non deep learning approaches. However, their computational burden and low resolution of the background image are hard to be ignored for the video synopsis application. Due to the quality of the condensed video, the video synopsis framework requires high quality background images. In addition, since the main objective of video synopsis is to make users browse videos quickly, computation time is one of the most important things to consider. Therefore, in this dissertation, the proposed framework utilizes a well-known Gaussian mixture model~\cite{Zivkovic2004} to separate the foreground of the objects from the background. Moreover, this modeling process can be accelerated by using the GPGPU.
+
 \subsection{Object tube generation}
-After the background modeling stage, we can get foreground masks of objects. To generate the object tubes, the masks that belong to the same object must be associated over temporal domain. For this task, simple yet efficient Hungarian algorithm~\cite{Kuhn1955} is utilized. 
-\subsection{Object stitching}
+After the background modeling stage, we can get foreground masks of objects. To generate the object tubes, the masks that belong to the same object must be associated over temporal domain. For this task, simple yet efficient Hungarian algorithm~\cite{Kuhn1955} is utilized. Originally, Hungarian algorithm is developed to solve the assignment problem, where 
 
+
+As a similarity function of the bipartite graph, an intersection of HSV color histograms between two foreground regions is used~\cite{perez2002color}. 
+
+\subsection{Object stitching}
 In the object tube generation stage, foregrounds that belong to the same object are associated by using the Hungarian algorithm~\cite{Kuhn1955} to generate the object tubes. Then, the generated object tubes are stored and maintained in a queue. When the size of the queue exceeds $K$, the starting labels of the object tubes in the queue are determined by the tube rearrangement algorithm, and the entire contents of the queue are cleared. After determining the starting labels, the corresponding object tubes are stitched back into the background to generate a small portion of the synopsis video. For a stitching algorithm, the Poisson image editing~\cite{Perez2003} is utilized. 
 
 Because the aforementioned process generates the synopsis video in a stepwise fashion, a discontinuity of motion flow problem~\cite{Fu2014} occurs when merging small portions of the synopsis video into the complete one. This problem can be solved by considering the tails of the object tubes in the previous step during the current rearrangement step.
