@@ -187,7 +187,7 @@ In (\ref{eq:basic_form}), we should note that energies can be categorized into t
 
 \section{Proposed tube rearrangement}
 \label{sec:proposed}
-In this section, the definition of $E_c$ is reformulated using the occupation matrix and an efficient tube rearrangement algorithm for optimizing the objective function is proposed. In addition, two types of the occupation matrix (binary and probabilistic) are introduced and their characteristics are explained in detail. A flowchart of the proposed online video synopsis framework including the tube rearrangement algorithm is illustrated in Fig.~\ref{fig:flowchart}.
+In this section, $E_c$ is reformulated using the occupation matrix and an efficient tube rearrangement algorithm for optimizing the objective function is proposed. In addition, two types of the occupation matrix (binary and probabilistic) are introduced and their characteristics are explained in detail. A flowchart of the proposed online video synopsis framework including the tube rearrangement algorithm is illustrated in Fig.~\ref{fig:flowchart}.
 
 \subsection{Occupation matrix generation}
 \label{sec:proposed:occ}
@@ -195,7 +195,7 @@ Each element of the occupation matrix $\textbf{M}_i (u,v,t)$ is either from Bool
 
 \subsubsection{Binary occupation matrix}
 \label{sec:proposed:occ:binary}
-The binary occupation matrix $\textbf{M}^b$ does not allow gray area value to represent the existence of objects; it can only have 1s and 0s. Let assume that the foreground mask of the $i^{\rm{th}}$ object is denoted as $\textbf{F}_i(x,y,t) \in \mathbb{B}$; then, $\textbf{M}_i^b(u,v,t)$ is defined as
+The binary occupation matrix $\textbf{M}^b$ does not allow gray area value to represent the existence of objects; it can only have 1s and 0s. Assume that the foreground mask of the $i^{\rm{th}}$ object is denoted as $\textbf{F}_i(x,y,t) \in \mathbb{B}$; then, $\textbf{M}_i^b(u,v,t)$ is defined as
 \begin{equation}
 \label{eq:bin_occ}
 \textbf{M}_i^b(u,v,t)=
@@ -213,7 +213,7 @@ where $X(u)$ and $Y(v)$ are sets of $x$ and $y$ coordinates, respectively.
 X(u)=\left\{ x \;\middle|\; \round*{\frac{W}{N}u} \leq x < \round*{\frac{W}{N}\left( u + 1 \right)} \right\},
 \end{equation}
 \begin{equation}
-Y(v)=\left\{ y \;\middle|\; \round*{\frac{M}{H}v} \leq y < \round*{\frac{M}{H}\left( v + 1 \right)} \right\}.
+Y(v)=\left\{ y \;\middle|\; \round*{\frac{H}{M}v} \leq y < \round*{\frac{H}{M}\left( v + 1 \right)} \right\}.
 \end{equation}
 
 Due to the condition $\left( \sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t) \neq 0 \right)$ in (\ref{eq:bin_occ}), even a single pixel of $\textbf{F}_i(x,y,t)$ can produce a response in $\textbf{M}_i^b(u,v,t)$. Therefore, $\textbf{M}_i^b$ exaggerates the occupation region of the object tube in the video sequence. An example of the binary occupation matrix generation is depicted in Fig.~\ref{fig:bin_occ}.
@@ -310,7 +310,7 @@ E_l(l_i,L_{i-1})=\max(T_i+l_i,T_{i-1}^{*}+l_{i-1}^{*})-\min(l_i,l_{i-1}^{*}).
 For better understanding of the stepwise optimization process, we will discuss about properties of the accumulated occupation matrix $\textbf{M}^{*}$. According to the type, the occupation matrix $\textbf{M}$ can have either Boolean or continuous values in the range from 0 to 1. On the other hand, $\textbf{M}^{*}$ is computed by adding two matrices as described in (\ref{eq:acc_occ}); therefore, each element of $\textbf{M}^{*}$ belongs to either $\mathbb{N}_{0}$ or $\mathbb{R}_{\geq 0}=\left\{ x \in \mathbb{R} \mid x \geq 0  \right\}$. By utilizing $\textbf{M}^{*}$, we can represent occupation and collision states of more than two objects on the single matrix.
 
 \subsection{Parallelized optimization}
-Even though $\textbf{M}$ provides an efficient way of representing the object tubes and $E_c$ can be computed easily with the element-wise multiplication, optimization of $E_c$ can further be accelerated by using both parallel processing and cross-correlation of two occupation matrices in the temporal domain. Prior to define the cross-correlation, let assume that two occupation matrices overlap by at least one frame in the temporal domain. Without this restriction, $E$ needs to be evaluated for every possible $l$ value. Then, the parallelized version of $E_c$ in (\ref{eq:EcStepwise}) is defined as
+Even though $\textbf{M}$ provides an efficient way of representing the object tubes and $E_c$ can be computed easily with the element-wise multiplication, optimization of $E_c$ can further be accelerated by using both parallel processing and cross-correlation of two occupation matrices in the temporal domain. Prior to define the cross-correlation, assume that two occupation matrices overlap by at least one frame in the temporal domain. Without this restriction, $E$ needs to be evaluated for every possible $l$ value. Then, the parallelized version of $E_c$ in (\ref{eq:EcStepwise}) is defined as
 \begin{equation}
 \label{eq:EcPP}
 \begin{aligned}
@@ -395,7 +395,7 @@ GAN is one of the most actively researched topics in the computer vision. Due to
 		\hline
 		Maddalena~\cite{maddalena2008self} & 0.8696 & 0.8463 & 0.9134 & 0.6142 & 0.7617 & 0.4244 & 0.8766 & 0.8412 & 0.5781 & 0.8015 & 0.7525 \\
 		\hline
-		Maddalena~\cite{maddalena2012sobs} & 0.9484 & 0.8573 & 0.9540 & 0.2105 & 0.9122 & 0.4017 & 0.8709 & 0.8472 & 0.8105 & 0.8795 & 0.7692 \\
+		Maddalena~\cite{maddalena2012sobs} & 0.9484 & 0.8573 & \bfseries 0.9540 & 0.2105 & 0.9122 & 0.4017 & 0.8709 & 0.8472 & 0.8105 & \bfseries 0.8795 & 0.7692 \\
 		\hline
 		Cuevas~\cite{cuevas2013improved} & 0.7859 & 0.7361 & 0.8527 & 0.7915 & 0.7288 & 0.5836 & 0.8638 & 0.8085 & 0.4555 & 0.7305 & 0.7335 \\
 		\hline
@@ -403,23 +403,44 @@ GAN is one of the most actively researched topics in the computer vision. Due to
 		\hline
 		Berj{\'o}n~\cite{berjon2018real} & 0.8805 & 0.8444 & 0.7807 & 0.6487 & 0.8873 & 0.6642 & 0.8776 & 0.8165 & 0.7765 & 0.7215 & 0.7914 \\
 		\hline
-		MSFgNet~\cite{Patil2018} & 0.9264 & 0.9213 & 0.9163 & 0.8967 & 0.9143 & 0.7157 & 0.8806 & 0.8659 & 0.8952 & 0.7869 & 0.8717 \\
+		MSFgNet~\cite{Patil2018} & \bfseries 0.9264 & \bfseries 0.9213 & 0.9163 & \bfseries 0.8967 & \bfseries 0.9143 & \bfseries 0.7157 & \bfseries 0.8806 & \bfseries 0.8659 & \bfseries 0.8952 & 0.7869 & \bfseries 0.8717 \\
 		\hline
 	\end{tabular}
 	\caption{Performance comparison of different background estimation methods regarding F-measure on LASIESTA dataset~\cite{cuevas2016labeled}. This table is adopted from the work of Patil~\etal~\cite{Patil2018}. Among them, MSFgNet~\cite{Patil2018} is one and only deep learning based approach and it outperforms other methods with a large margin.}
 	\label{tb:bg_fmeasure}
 \end{sidewaystable}
-As shown in Table~\ref{tb:bg_fmeasure} of Patil~\etal~\cite{Patil2018}, F-measure of the deep learning based approach is superior than those of the non deep learning approaches. However, their computational burden and low resolution of the background image are hard to be ignored for the video synopsis application. Due to the quality of the condensed video, the video synopsis framework requires high quality background images. In addition, since the main objective of video synopsis is to make users browse videos quickly, computation time is one of the most important things to consider. Therefore, in this dissertation, the proposed framework utilizes a well-known Gaussian mixture model~\cite{Zivkovic2004} to separate the foreground of the objects from the background. Moreover, this modeling process can be accelerated by using the GPGPU.
+As shown in Table~\ref{tb:bg_fmeasure} of Patil~\etal~\cite{Patil2018}, F-measure of the deep learning based approach is superior than those of the non deep learning approaches. However, their computational burden is hard to be ignored for the video synopsis application. Since the main objective of video synopsis is to make users browse videos quickly, computation time is one of the most important things to consider. Therefore, in this dissertation, the proposed framework utilizes a well-known Gaussian mixture model~\cite{Zivkovic2004} to separate the foreground of the objects from the background and this modeling process can be accelerated by using the GPGPU.
 
 \subsection{Object tube generation}
-After the background modeling stage, we can get foreground masks of objects. To generate the object tubes, the masks that belong to the same object must be associated over temporal domain. For this task, simple yet efficient Hungarian algorithm~\cite{Kuhn1955} is utilized. Originally, Hungarian algorithm is developed to solve the assignment problem, where 
+After the background modeling stage, we can get foreground masks of objects. To generate the object tubes, the masks that belong to the same object must be associated over temporal domain. This task is called as multi-object tracking. The problem of multi-object tracking can be seen as finding a matching, where the sum of edge weights is maximized in the bipartite graph. If the one set in the graph contains foreground masks in $i^{\rm{th}}$ frame, the other set has the binary masks belong to $(i+1)^{\rm{th}}$ frame. This problem can be solved by simple yet efficient Hungarian algorithm~\cite{Kuhn1955,kuhn1956variants,munkres1957algorithms}. The original version of the algorithm requires a condition that cardinalities of two sets are equal; in other words, the number of agents and the number of tasks to be assigned are same. We say that the assignment problem with such condition is linear. However, in real world environment, it is common that cardinalities of two sets are not equal; thus, the extended version of Hungarian algorithm~\cite{bourgeois1971extension} is utilized in this dissertation. Moreover, an intersection of HSV color histograms between two foreground regions is used as a similarity function of the bipartite graph~\cite{perez2002color}. A flowchart of the object tube generation stage is illustrated in Fig.~\ref{}.
 
-
-As a similarity function of the bipartite graph, an intersection of HSV color histograms between two foreground regions is used~\cite{perez2002color}. 
+For online video synopsis, generated object tubes are stored and maintained in a queue. When the size of th queue exceeds $K$, the starting labels of first $K$ object tubes in the queue are determined by the proposed tube rearrangement algorithm. Then, corresponding tubes are removed from the queue and prepared to be stitched.
 
 \subsection{Object stitching}
-In the object tube generation stage, foregrounds that belong to the same object are associated by using the Hungarian algorithm~\cite{Kuhn1955} to generate the object tubes. Then, the generated object tubes are stored and maintained in a queue. When the size of the queue exceeds $K$, the starting labels of the object tubes in the queue are determined by the tube rearrangement algorithm, and the entire contents of the queue are cleared. After determining the starting labels, the corresponding object tubes are stitched back into the background to generate a small portion of the synopsis video. For a stitching algorithm, the Poisson image editing~\cite{Perez2003} is utilized. 
+To make a condensed video, foregrounds of the rearranged object tubes are stitched with the background images by utilizing Poisson image editing~\cite{Perez2003}. What we can do with Poisson image editing is inserting some part of the source image to the destination image seamlessly as shown in Fig.~\ref{}.
 
+Before explaining the mathematics behind this editing, some notations need to be defined first. In Fig.~\ref{}, $\boldsymbol{S}$ is a spatial domain of the destination image and belongs to $\mathbb{R}^2$, $\boldsymbol\Omega$ is the domain to be edited and has a boundary $\partial\boldsymbol\Omega$, $g$ and $f^{*}$ are scalar functions of source and destination images, respectively, $f$ is an unknown function, and $\textbf{v}$ is a gradient field which will be explained later. In addition, $f^{*}$ is defined over $S-(\boldsymbol\Omega-\partial\boldsymbol\Omega)$ and $f$ is defined over $\boldsymbol\Omega$; therefore, $\partial\boldsymbol\Omega$ indicates an overlapped region between $\boldsymbol{S}$ and $\boldsymbol\Omega$.
+
+As you can see in Fig.~\ref{}, the objective of the editing is to find a proper $f$ satisfying the boundary condition on $\boldsymbol\Omega$. One example of achieving the objective is minimizing the following equation.
+\begin{equation}
+\label{eq:min_field}
+\min_f \iint_{\boldsymbol\Omega} |\nabla f - \textbf{v}|^2 \quad \textrm{with} \quad f|_{\boldsymbol\partial\Omega}=f^{*}|_{\boldsymbol\partial\Omega}.
+\end{equation}
+The unique solution of (\ref{eq:min_field}) can be obtained by solving following Poisson equation with Dirichlet boundary condition.
+\begin{equation}
+\label{eq:poisson}
+\Delta f = \textrm{div}\textbf{v} \quad \textrm{over} \quad \boldsymbol\Omega \quad \textrm{with} \quad f|_{\boldsymbol\partial\Omega}=f^{*}|_{\boldsymbol\partial\Omega},
+\end{equation}
+where div$\cdot$ is a divergence operator; hence $\textrm{div}\textbf{v}= \left( \frac{\partial u}{\partial x},\frac{\partial v}{\partial y} \right)$, when $\textbf{v}=(u, v)$. In (\ref{eq:min_field}) and (\ref{eq:poisson}), $\textbf{v}$ is used as a guidance field; therefore, how to choose $\textbf{v}$ can change the purpose of the editing. One possible choice of $\textbf{v}$ to seamlessly insert one image to another is $\nabla g$. Then, (\ref{eq:poisson}) is changed to
+\begin{equation}
+\label{eq:poisson2}
+\Delta f = \Delta g \quad \textrm{over} \quad \boldsymbol\Omega \quad \textrm{with} \quad f|_{\boldsymbol\partial\Omega}=f^{*}|_{\boldsymbol\partial\Omega}.
+\end{equation}
+The equation (\ref{eq:poisson2}) means that the Laplacian of the inserted region is identical to that of the source while pixel intensities of the destination over the inserted region's boundary remain unchanged.
+
+Fig.~\ref{} shows example frames of the condensed video after applying either na\"ive alpha blending or Poisson image editing for the stitching process. As you can see in the figure, results using Poisson image editing are more visually natural but it takes more computation time than the na\"ive approach.
+
+\subsection{Discontinuity of motion flow}
 Because the aforementioned process generates the synopsis video in a stepwise fashion, a discontinuity of motion flow problem~\cite{Fu2014} occurs when merging small portions of the synopsis video into the complete one. This problem can be solved by considering the tails of the object tubes in the previous step during the current rearrangement step.
 \begin{figure}
 	\centering
