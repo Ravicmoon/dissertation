@@ -7,7 +7,7 @@
 \linespread{2.0}
 \usepackage[pdftex]{graphicx}
 \usepackage{rotating}
-\usepackage[caption=false,font=normalsize]{subfig}
+\usepackage[caption=false,font=small]{subfig}
 \usepackage[labelsep=period]{caption}
 \usepackage{amsmath}
 \usepackage{commath}

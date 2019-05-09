@@ -406,7 +406,7 @@ GAN is one of the most actively researched topics in the computer vision. Due to
 		MSFgNet~\cite{Patil2018} & \bfseries 0.9264 & \bfseries 0.9213 & 0.9163 & \bfseries 0.8967 & \bfseries 0.9143 & \bfseries 0.7157 & \bfseries 0.8806 & \bfseries 0.8659 & \bfseries 0.8952 & 0.7869 & \bfseries 0.8717 \\
 		\hline
 	\end{tabular}
-	\caption{Performance comparison of different background estimation methods regarding F-measure on LASIESTA dataset~\cite{cuevas2016labeled}. This table is adopted from the work of Patil~\etal~\cite{Patil2018}. Among them, MSFgNet~\cite{Patil2018} is one and only deep learning based approach and it outperforms other methods with a large margin.}
+	\caption{Performance comparison of different background estimation methods regarding F-measure on LASIESTA dataset~\cite{cuevas2016labeled}. This table is from the work of Patil~\etal~\cite{Patil2018}. Among them, MSFgNet~\cite{Patil2018} is one and only deep learning based approach and it outperforms other methods with a large margin.}
 	\label{tb:bg_fmeasure}
 \end{sidewaystable}
 As shown in Table~\ref{tb:bg_fmeasure} of Patil~\etal~\cite{Patil2018}, F-measure of the deep learning based approach is superior than those of the non deep learning approaches. However, their computational burden is hard to be ignored for the video synopsis application. Since the main objective of video synopsis is to make users browse videos quickly, computation time is one of the most important things to consider. Therefore, in this dissertation, the proposed framework utilizes a well-known Gaussian mixture model~\cite{Zivkovic2004} to separate the foreground of the objects from the background and this modeling process can be accelerated by using the GPGPU.
@@ -417,11 +417,76 @@ After the background modeling stage, we can get foreground masks of objects. To 
 For online video synopsis, generated object tubes are stored and maintained in a queue. When the size of th queue exceeds $K$, the starting labels of first $K$ object tubes in the queue are determined by the proposed tube rearrangement algorithm. Then, corresponding tubes are removed from the queue and prepared to be stitched.
 
 \subsection{Object stitching}
-To make a condensed video, foregrounds of the rearranged object tubes are stitched with the background images by utilizing Poisson image editing~\cite{Perez2003}. What we can do with Poisson image editing is inserting some part of the source image to the destination image seamlessly as shown in Fig.~\ref{}.
+\begin{figure}
+	\centering
+	\subfloat[Source image]
+	{
+		\includegraphics[height=0.28\textheight]{poisson_src1.eps}
+	}
+	\subfloat[Destination image]
+	{
+		\includegraphics[height=0.28\textheight]{poisson_dest1.eps}
+	}
+	\subfloat[Cloning]
+	{
+		\includegraphics[height=0.28\textheight]{poisson_cloning1.eps}
+	}
+	\subfloat[Seamless cloning]
+	{
+		\includegraphics[height=0.28\textheight]{poisson_seamless_cloning1.eps}
+	}
+	\caption{First example of seamless cloning using Poisson image editing. All images in this figure are from the work of P{\'e}rez~\etal~\cite{Perez2003}.}
+	\label{fig:seamless_cloning1}
+\end{figure}
+\begin{figure}
+	\centering
+	\parbox{\linewidth}
+	{
+		\parbox{0.3\linewidth}
+		{
+			\subfloat[Sources/destinations]
+			{
+				\begin{minipage}{\linewidth}
+					\centering
+					\includegraphics[height=0.05\textheight]{poisson_src2-1.eps}
+					\vfill
+					\includegraphics[height=0.05\textheight]{poisson_src2-2.eps}
+					\vfill
+					\includegraphics[height=0.15\textheight]{poisson_dest2.eps}
+				\end{minipage}
+			}
+		}
+		\hskip1em
+		\parbox{0.3\linewidth}
+		{
+			\subfloat[Cloning]
+			{
+				\includegraphics[height=0.255\textheight]{poisson_cloning2.eps}
+			}
+		}
+		\hskip1em
+		\parbox{0.3\linewidth}
+		{
+			\subfloat[Seamless cloning]
+			{
+				\includegraphics[height=0.255\textheight]{poisson_seamless_cloning2.eps}
+			}
+		}
+	}
+	\caption{Second example of seamless cloning using Poisson image edting. Unlike the first example, there are three regions from two source images for one destination image. All images in this figure are from the work of P{\'e}rez~\etal~\cite{Perez2003}.}
+	\label{fig:seamless_cloning2}
+\end{figure}
+To make a condensed video, foregrounds of the rearranged object tubes are stitched with the background images by utilizing Poisson image editing~\cite{Perez2003}. What we can do with Poisson image editing is inserting some part of the source image to the destination image seamlessly as shown in Fig.~\ref{fig:seamless_cloning1} and Fig.~\ref{fig:seamless_cloning2}.
 
-Before explaining the mathematics behind this editing, some notations need to be defined first. In Fig.~\ref{}, $\boldsymbol{S}$ is a spatial domain of the destination image and belongs to $\mathbb{R}^2$, $\boldsymbol\Omega$ is the domain to be edited and has a boundary $\partial\boldsymbol\Omega$, $g$ and $f^{*}$ are scalar functions of source and destination images, respectively, $f$ is an unknown function, and $\textbf{v}$ is a gradient field which will be explained later. In addition, $f^{*}$ is defined over $S-(\boldsymbol\Omega-\partial\boldsymbol\Omega)$ and $f$ is defined over $\boldsymbol\Omega$; therefore, $\partial\boldsymbol\Omega$ indicates an overlapped region between $\boldsymbol{S}$ and $\boldsymbol\Omega$.
+Before explaining the mathematics behind this editing, some notations need to be defined first. In Fig.~\ref{fig:poisson_notation}, $\boldsymbol{S}$ is a spatial domain of the destination image and belongs to $\mathbb{R}^2$, $\boldsymbol\Omega$ is the domain to be edited and has a boundary $\partial\boldsymbol\Omega$, $g$ and $f^{*}$ are scalar functions of source and destination images, respectively, $f$ is an unknown function, and $\textbf{v}$ is a gradient field which will be explained later. In addition, $f^{*}$ is defined over $S-(\boldsymbol\Omega-\partial\boldsymbol\Omega)$ and $f$ is defined over $\boldsymbol\Omega$; therefore, $\partial\boldsymbol\Omega$ indicates an overlapped region between $\boldsymbol{S}$ and $\boldsymbol\Omega$.
 
-As you can see in Fig.~\ref{}, the objective of the editing is to find a proper $f$ satisfying the boundary condition on $\boldsymbol\Omega$. One example of achieving the objective is minimizing the following equation.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{poisson_image_editing_notation.eps}
+	\caption{Notations used in Poisson image editing~\cite{Perez2003}.}
+	\label{fig:poisson_notation}
+\end{figure}
+As you can see in Fig.~\ref{fig:poisson_notation}, the objective of the editing is to find a proper $f$ satisfying the boundary condition on $\boldsymbol\Omega$. One example of achieving the objective is minimizing the following equation.
 \begin{equation}
 \label{eq:min_field}
 \min_f \iint_{\boldsymbol\Omega} |\nabla f - \textbf{v}|^2 \quad \textrm{with} \quad f|_{\boldsymbol\partial\Omega}=f^{*}|_{\boldsymbol\partial\Omega}.
@@ -439,6 +504,11 @@ where div$\cdot$ is a divergence operator; hence $\textrm{div}\textbf{v}= \left(
 The equation (\ref{eq:poisson2}) means that the Laplacian of the inserted region is identical to that of the source while pixel intensities of the destination over the inserted region's boundary remain unchanged.
 
 Fig.~\ref{} shows example frames of the condensed video after applying either na\"ive alpha blending or Poisson image editing for the stitching process. As you can see in the figure, results using Poisson image editing are more visually natural but it takes more computation time than the na\"ive approach.
+\begin{figure}
+	\centering
+	\caption{text}
+	\label{key}
+\end{figure}
 
 \subsection{Discontinuity of motion flow}
 Because the aforementioned process generates the synopsis video in a stepwise fashion, a discontinuity of motion flow problem~\cite{Fu2014} occurs when merging small portions of the synopsis video into the complete one. This problem can be solved by considering the tails of the object tubes in the previous step during the current rearrangement step.
