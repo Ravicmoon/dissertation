@@ -572,13 +572,13 @@ where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending 
 The last but not least RT is a metric to compare computational complexity of the algorithm and measured in milliseconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
 
 \section{Test video sequences}
-For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_list}. Some examples of the test sequences are depicted in Fig.~\ref{fig:examples}.
+For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_perf}. Some examples of the test sequences are depicted in Fig.~\ref{fig:examples}.
 
 Parking lot square I sequence mainly focuses on the entrance of the parking lot but there is a sidewalk with red bricks on the left. Since this place is a main road to most of buildings in Hanyang university, the scene is very crowded with people. The scene of Parking lot square II is similar to that of Parking lot square I, but the most of moving objects are vehicle not pedestrian.
 
 Crossroad I and II sequences are captured at the same place with different seasons and camera's zoom parameter. Crossroad I is captured at summer with more zoom, while Crossroad II is captured at fall with less zoom. Most of people appeared in this scene walk in either left or right directions.
 
-Library lobby sequences is captured by the indoor security camera mounted on 2nd floor of the building. There is a gateway of the library at top of the scene and stairs (not visible in the scene) are located at left and right side of the building; therefore, people move from either left or right to the top, or vice versa.
+Library lobby sequence is captured by the indoor security camera mounted on 2nd floor of the building. There is a gateway of the library at top of the scene and stairs (not visible in the scene) are located at left and right side of the building; therefore, people move from either left or right to the top, or vice versa.
 
 Subway station plaza is an open place in front of the subway station entrance. Since there are many ways to get to the building from here, there is no dominant walking direction of people.
 
@@ -596,10 +596,10 @@ Subway station plaza is an open place in front of the subway station entrance. S
 	\subfloat[Crossroad II]
 	{\includegraphics[width=0.45\linewidth]{fig/crossroad02.png}}
 	\label{fig:library}
-	\subfloat[Library lobby]
+	\subfloat[Library lobby I]
 	{\includegraphics[width=0.45\linewidth]{fig/library.png}}
 	\label{fig:parking_lot}
-	\subfloat[Subway station plaza]
+	\subfloat[Subway station plaza I]
 	{\includegraphics[width=0.45\linewidth]{fig/subway_entrance.png}}
 	\label{fig:subway_entrance}
 	\caption{Examples of the test sequences. All sequences were captured at Hanyang university, Seoul, Korea.}
@@ -613,27 +613,66 @@ Subway station plaza is an open place in front of the subway station entrance. S
 			\hline
 			\multicolumn{1}{|c|}{1} & Parking lot square I & $1280 \times 720$ & 44,057 & 650\\
 			\hline
-			\multicolumn{1}{|c|}{5} & Parking lot square II & $640 \times 360$ & 107,946 & 271\\
+			\multicolumn{1}{|c|}{2} & Parking lot square II & $640 \times 360$ & 107,946 & 271\\
 			\hline
-			\multicolumn{1}{|c|}{2} & Crossroad I & $640 \times 360$ & 85,766 & 291\\
+			\multicolumn{1}{|c|}{3} & Crossroad I & $640 \times 360$ & 85,766 & 291\\
 			\hline
-			\multicolumn{1}{|c|}{3} & Crossroad II & $640 \times 360$ & 106,459 & 937\\
+			\multicolumn{1}{|c|}{4} & Crossroad II & $640 \times 360$ & 106,459 & 937\\
 			\hline
-			\multicolumn{1}{|c|}{4} & Library lobby & $1280 \times 720$ & 49,679 & 316\\
+			\multicolumn{1}{|c|}{5} & Library lobby I & $1280 \times 720$ & 49,679 & 316\\
 			\hline
-			\multicolumn{1}{|c|}{6} & Subway station plaza & $640 \times 360$ & 107,876 & 1038\\
+			\multicolumn{1}{|c|}{6} & Subway station plaza I & $640 \times 360$ & 107,876 & 1038\\
 			\hline
 		\end{tabular}
 	\end{center}
-	\caption{List of test sequences used in the experiments}
-	\label{tb:video_list}
+	\caption{List of test sequences used in the experiments.}
+	\label{tb:video_perf}
 \end{table}
 
 \section{Performance analysis}
-The experiments in this section are designed to 1) find optimum parameters for the proposed tube rearrangement algorithm, 2) prove the efficiency of the parallelized tube rearrangement and 3) compare performances of several different online tube rearrangement algorithms.
+The experiments in this section are designed to 1) find optimum parameters for the proposed tube rearrangement algorithm, 2) prove the efficiency of the parallelized tube rearrangement, and 3) compare performances of several different online tube rearrangement algorithms.
 
 \subsection{Optimum parameters}
+There are three necessary parameters for the proposed tube rearrangement algorithm: the weight parameter of the length energy $\lambda$, the size of the occupation matrix $\mathcal{M}\times\mathcal{N}$, and the size of the queue $K$. Apart from six test sequences used for the performance evaluation, additional five video clips are prepared to find optimum parameters and detail characteristics of the videos are summarized in Table~\ref{tb:video_param}.
+\begin{table}
+	\begin{center}
+		\begin{tabular}{c|l|c|c|c|}
+			\cline{2-5}
+			& Video Clips & Resolution & \# Frame & \# Tube\\
+			\hline
+			\multicolumn{1}{|c|}{1} & Crossroad III & $1280 \times 720$ & 106,558 & \\
+			\hline
+			\multicolumn{1}{|c|}{2} & Library lobby II & $1280 \times 720$ & 108,091 & \\
+			\hline
+			\multicolumn{1}{|c|}{3} & Subway station plaza II & $1280 \times 720$ & 134,622 & \\
+			\hline
+			\multicolumn{1}{|c|}{4} & Subway station plaza III & $1280 \times 720$ & 108,016 & \\
+			\hline
+			\multicolumn{1}{|c|}{5} & Subway station plaza IV & $1280 \times 720$ & 108,012 & \\
+			\hline
+		\end{tabular}
+	\end{center}
+	\caption{List of sequences used to find optimum parameters of the proposed tube rearrangement algorithm.}
+	\label{tb:video_param}
+\end{table}
 
+First experiment is conducted by changing $\lambda$ from 0.001 to 10. Results of the experiment is depicted in
+
+\begin{figure}
+
+\end{figure}
+\begin{figure}
+
+\end{figure}
+\begin{figure}
+
+\end{figure}
+\begin{figure}
+
+\end{figure}
+\begin{figure}
+
+\end{figure}
 
 \subsection{Efficiency of parallelization}
 To show the efficiency of our proposed parallelization scheme, parallelized and non-parallelized versions of the proposed algorithm are compared in terms of running time. A result of the comparison is illustrated in Fig.~\ref{fig:RT}. According to the results, the parallelized version is approximately 2.5 times faster than the non-parallelized version. Because the current parallelized version is based on CPU multi-threading, the proposed algorithm can be further efficiently computed with GPU-based parallelization.
