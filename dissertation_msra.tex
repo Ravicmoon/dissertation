@@ -538,13 +538,14 @@ As shown in Fig.~\ref{fig:framework}, online video synopsis generates a small po
 
 \chapter{Experimental Results}
 \label{sec:exp}
-In this chapter, the performance of the proposed tube rearrangement algorithm is evaluated by using four metrics: frame condensation ratio (FR), compact ratio (CR), overlap ratio (OR), and running time (RT).
+\section{Overview}
+In this chapter, the performance of the proposed tube rearrangement algorithm is evaluated by using four metrics: frame condensation ratio (FR), compact ratio (CR), overlap ratio (OR), and running time (RT). The detail of each performance metric is presented as follows.
 
 FR is defined as a ratio of the condensed video length to the original video.
 \begin{equation}
 FR = \frac{\mathcal{T}^{*}}{\mathcal{T}},
 \end{equation}
-where $\mathcal{T}^{*}$ and $\mathcal{T}$ are lengths of the condensed and original videos, respectively. 
+where $\mathcal{T}^{*}$ and $\mathcal{T}$ are lengths of the condensed and original videos, respectively. Smaller FR is better for reducing time consumption of browsing contents of the video.
 
 CR indicates that how many pixels in the condensed video are occupied by the objects and is defined as
 \begin{equation}
@@ -565,14 +566,24 @@ OR is proportional to the number of overlapped foreground pixels in the condense
 \begin{equation}
 OR=\frac{1}{\mathcal{W}\mathcal{H}\mathcal{T}^{*}}\sum_{x=1}^{\mathcal{W}}\sum_{y=1}^{\mathcal{H}}\sum_{t=1}^{\mathcal{T}^{*}} O(x,y,t),
 \end{equation}
-where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending foreground pixels of two or more objects and $B_t(x,y,t)$; otherwise, it produces 0. If OR is small, we can easily distinguish rearranged objects in the synopsis video; therefore, we are more likely to understand the summarized information better.
+where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending foreground pixels of two or more objects with $B_t(x,y,t)$; otherwise, it produces 0. If OR is small, we can easily distinguish rearranged objects in the synopsis video; therefore, we are more likely to understand the summarized information better.
 
-The last but not least RT is a metric to compare computational complexity of the algorithm and measured in milliseconds. The experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
+The last but not least RT is a metric to compare computational complexity of the algorithm and measured in milliseconds. 
 
-\section{Test video sequences}
-For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_list}. Some examples of the test sequences are depicted in Fig.~\ref{fig:examples}. 
+ The experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
 
 The experiments are designed to 1) prove the efficiency of the parallelized tube rearrangement and 2) compare performances of several different online tube rearrangement algorithms.
+
+\section{Test video sequences}
+For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_list}. Some examples of the test sequences are depicted in Fig.~\ref{fig:examples}.
+
+Parking lot square I sequence mainly focuses on the entrance of the parking lot but there is a sidewalk with red bricks on the left. Since this place is a main road to most of buildings in Hanyang university, the scene is very crowded with people. The scene of Parking lot square II is similar to that of Parking lot square I, but the most of moving objects are vehicle not pedestrian.
+
+Crossroad I and II sequences are captured at the same place with different seasons and camera's zoom parameter. Crossroad I is captured at summer with more zoom, while Crossroad II is captured at fall with less zoom. Most of people appeared in this scene walk in either left or right directions.
+
+Library lobby sequences is captured by the indoor security camera mounted on 2nd floor of the building. There is a gateway of the library at top of the scene and stairs (not visible in the scene) are located at left and right side of the building; therefore, people move from either left or right to the top, or vice versa.
+
+Subway station plaza is an open place in front of the subway station entrance. Since there are many ways to get to the building from here, there is no dominant walking direction of people.
 
 \begin{figure}
 	\centering
@@ -620,6 +631,9 @@ The experiments are designed to 1) prove the efficiency of the parallelized tube
 	\caption{List of test sequences used in the experiments}
 	\label{tb:video_list}
 \end{table}
+
+\section{Parameter analysis}
+
 
 \section{Efficiency of parallelized tube rearrangement}
 To show the efficiency of our proposed parallelization scheme, parallelized and non-parallelized versions of the proposed algorithm are compared in terms of running time. A result of the comparison is illustrated in Fig.~\ref{fig:RT}. According to the results, the parallelized version is approximately 2.5 times faster than the non-parallelized version. Because the current parallelized version is based on CPU multi-threading, the proposed algorithm can be further efficiently computed with GPU-based parallelization.
