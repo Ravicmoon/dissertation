@@ -532,13 +532,14 @@ As shown in Fig.~\ref{fig:framework}, online video synopsis generates a small po
 		\includegraphics[width=0.9\linewidth]{discontinuity2.pdf}
 		\label{fig:discontinuity:2}
 	}
-	\caption{Simple solution for the discontinuity of motion flow problem. When finding optimum starting labels for $2^{\rm{nd}}$ iteration, tails of the object tubes rearranged at $1^{\rm{st}}$ iteration are considered as obstacles, blocks shaded in magenta at \protect\subref{fig:discontinuity:2}.}
+	\caption{Simple solution for the discontinuity of motion flow problem. When finding optimum starting labels for $2^{\rm{nd}}$ iteration, tails of the object tubes rearranged at $1^{\rm{st}}$ iteration (patterned region) are considered as obstacles as shown in \protect\subref{fig:discontinuity:2}.}
 	\label{fig:discontinuity}
 \end{figure}
 
 \chapter{Experimental Results}
 \label{sec:exp}
-\section{Overview}
+
+\section{Performance metrics}
 In this chapter, the performance of the proposed tube rearrangement algorithm is evaluated by using four metrics: frame condensation ratio (FR), compact ratio (CR), overlap ratio (OR), and running time (RT). The detail of each performance metric is presented as follows.
 
 FR is defined as a ratio of the condensed video length to the original video.
@@ -568,11 +569,7 @@ OR=\frac{1}{\mathcal{W}\mathcal{H}\mathcal{T}^{*}}\sum_{x=1}^{\mathcal{W}}\sum_{
 \end{equation}
 where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending foreground pixels of two or more objects with $B_t(x,y,t)$; otherwise, it produces 0. If OR is small, we can easily distinguish rearranged objects in the synopsis video; therefore, we are more likely to understand the summarized information better.
 
-The last but not least RT is a metric to compare computational complexity of the algorithm and measured in milliseconds. 
-
- The experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
-
-The experiments are designed to 1) prove the efficiency of the parallelized tube rearrangement and 2) compare performances of several different online tube rearrangement algorithms.
+The last but not least RT is a metric to compare computational complexity of the algorithm and measured in milliseconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
 
 \section{Test video sequences}
 For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_list}. Some examples of the test sequences are depicted in Fig.~\ref{fig:examples}.
@@ -632,10 +629,13 @@ Subway station plaza is an open place in front of the subway station entrance. S
 	\label{tb:video_list}
 \end{table}
 
-\section{Parameter analysis}
+\section{Performance analysis}
+The experiments in this section are designed to 1) find optimum parameters for the proposed tube rearrangement algorithm, 2) prove the efficiency of the parallelized tube rearrangement and 3) compare performances of several different online tube rearrangement algorithms.
+
+\subsection{Optimum parameters}
 
 
-\section{Efficiency of parallelized tube rearrangement}
+\subsection{Efficiency of parallelization}
 To show the efficiency of our proposed parallelization scheme, parallelized and non-parallelized versions of the proposed algorithm are compared in terms of running time. A result of the comparison is illustrated in Fig.~\ref{fig:RT}. According to the results, the parallelized version is approximately 2.5 times faster than the non-parallelized version. Because the current parallelized version is based on CPU multi-threading, the proposed algorithm can be further efficiently computed with GPU-based parallelization.
 
 \begin{figure}[t]
@@ -670,7 +670,7 @@ To show the efficiency of our proposed parallelization scheme, parallelized and 
 \label{fig:OR}
 \end{figure}
 
-\section{Comparisons of different online tube rearrangement algorithms}
+\subsection{Comparisons of different online tube rearrangement algorithms}
 We have reproduced three recently introduced online tube rearrangement algorithms to compare and analyze the performance of the proposed algorithm. For fair comparisons, the required parameters of existing algorithms are set the same as in the original papers. Note that existing algorithms have not employed any spatial subsampling. Results of the comparisons are illustrated in~\cref{fig:RT,fig:FCR,fig:CR,fig:OR}. For FR, the proposed algorithm achieved the second-best performance in overall. For CR, the algorithm of Zhu~\etal~\cite{JianqingZhu2015} performed the best, while the others do not show significant differences. On the other hand, regarding RT and OR, the proposed algorithm outperformed other algorithms by a wide margin. Especially for RT, even a non-parallelized version has an advantage over existing algorithms. The experiments show that the proposed algorithm can efficiently handle occlusions far better than existing ones, even with a large number of objects.
 
 \chapter{Conclusion}
