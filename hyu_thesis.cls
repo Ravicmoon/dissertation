@@ -29,10 +29,12 @@
 \newcommand{\mediumfont}{\fontsize{13}{\baselineskip}\selectfont}
 
 \usepackage{titlesec}
-\titleformat*{\section}{\titlelabel{\thesection\space}\bf\largefont}
+\titleformat{\chapter}
+{\bf\largefont}{\thechapter}{1em}{}
+\titleformat*{\section}{\titlelabel{\thesection\space}\bf\mediumfont}
 \titleformat*{\subsection}{\titlelabel{\thesubsection\space}\bf\mediumfont}
 \titleformat*{\subsubsection}{\titlelabel{\thesubsubsection\space}\bf\mediumfont}
-\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesection}{\thechapter.\arabic{section}}
 \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 
@@ -41,7 +43,9 @@
 \renewcommand{\listtablename}{\largefont LIST OF TABLES}
 \renewcommand{\bibname}{\largefont BIBLIOGRAPHY}
 
-\renewcommand{\figurename}{Fig.}
+\renewcommand{\figurename}{Figure}
+\renewcommand{\thefigure}{\thechapter-\arabic{figure}}
+\renewcommand{\thetable}{\thechapter-\arabic{table}}
 
 \makeatletter
 
