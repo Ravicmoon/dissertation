@@ -12,13 +12,16 @@
 \usepackage{amsmath}
 \usepackage{commath}
 \usepackage{mathtools}
+\usepackage{cleveref}
 \usepackage{algorithmic, algorithm}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 \usepackage{cite}
-\usepackage{cleveref}
 \usepackage{lmodern}
 \usepackage{amsfonts}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{booktabs}
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
