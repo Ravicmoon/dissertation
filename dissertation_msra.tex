@@ -1,4 +1,16 @@
 \documentclass[11pt]{hyu_thesis}
+\usepackage{tikz}
+\usepgfplotslibrary{external} % creates a tight self-contained pdf figure for each tikzpicture
+\tikzexternalize % comment out to debug if latex errors: generates the external pdf
+\tikzset{external/force remake} % otherwise will use external pdf if it exists
+\tikzset{png export/.style={
+		external/system call={
+			pdflatex \tikzexternalcheckshellescape
+			-halt-on-error -interaction=batchmode -jobname "\image" "\texsource";
+			convert -units pixelsperinch -density 600 "\image.pdf" "\image.png";
+}}}
+\tikzset{png export}
+\tikzsetexternalprefix{tikz/} % output the pdf to an existing directory (needs to exist)
 
 \begin{document}
 
@@ -50,14 +62,16 @@ In this dissertation, the tube rearrangement problem is reformulated as a suitab
 \label{sec:intro:related}
 A summary of the recent advances in video synopsis is presented as follows. Nie~\etal~\cite{Nie2014} rearrange object tubes in both temporal and spatial domain to generate more condensed videos. Zhu~\etal~\cite{Zhu2014} and Mahapatra~\etal~\cite{Mahapatra2016} extend the concept of video synopsis to the multi-camera network. Wang~\etal~\cite{Wang2013} and Zhong~\etal~\cite{RuiZhong2014} utilize the compressed domain to generate synopsis videos efficiently. X. Li~\etal~\cite{Li2016a} scale down object sizes to reduce collisions in the synopsis video. Z. Li~\etal~\cite{ZhuangLi2009} and K. Li~\etal~\cite{Li2016} introduce a seam carving method to remove redundant information from the original video.
 
+%For the original work of Zhu~\etal~\cite{JianqingZhu2015}, instead of using the queue, they utilize two level cache condensed spaces (L1 and L2). When L1 cache space is filled with object tubes, the algorithm generates a portion of the synopsis video. On the other hand, L2 space is for gathering object tubes which do not find proper locations in L1 space.
+
 \section{Dissertation overview}
 \label{sec:intro:overview}
-The rest of the dissertation is organized as follows. \Cref{sec:basic_form} introduces the basic formulation of video synopsis and details of the proposed tube rearrangement algorithm are described in \Cref{sec:proposed}. \Cref{sec:framework} contains explanations of other components that the online video synopsis consists of. \Cref{sec:exp} presents experimental results, and the dissertation is concluded in \Cref{sec:conc}.
+The rest of the dissertation is organized as follows. \Cref{sec:basic_form} introduces the problem formulation of video synopsis and details of the proposed tube rearrangement algorithm are described in \Cref{sec:proposed}. \Cref{sec:framework} contains explanations of other components that the online video synopsis consists of. \Cref{sec:exp} presents experimental results, and the dissertation is concluded in \Cref{sec:conc}.
 
-\chapter{Basic formulation of video synopsis}
+\chapter{Problem formulation of video synopsis}
 \label{sec:basic_form}
 
-In this chapter, the basic formulation of video synopsis introduced in the pioneering works~\cite{Rav-Acha2006,Pritch2007,Pritch2008} is described to show which part of the formulation has to be changed for parallel processing. In addition, the reason why online video synopsis mainly considers collision energy is explained in detail.
+In this chapter, the problem formulation of video synopsis introduced in the pioneering works~\cite{Rav-Acha2006,Pritch2007,Pritch2008} is described to show which part of the formulation has to be changed to apply parallel processing. In addition, the reason why online video synopsis mainly considers collision energy is explained in detail.
 
 As in \Cref{fig:video_synopsis,fig:video_synopsis_2d}, a principal objective of video synopsis is shortening length of the input video by relocating object tubes in temporal domain. In other words, we try to find the best combination of object tubes' starting positions in temporal domain (starting labels). In the field of video surveillance, a definition of the best combination can be different from specific applications. However, based on the paper of Pritch~\etal~\cite{Pritch2008}, the condensed video with the best starting label combination should have following characteristics.
 \begin{itemize}
@@ -157,7 +171,7 @@ where $\hat{l}$ indicates a starting label of the object in the input video and 
 
 Since the behavior of the equation (\ref{eq:Et}) is not straightforward, detail explanations will be given through examples. Assume that two objects are close in spatio-temporal domain of the original video. In this case, $E_t$ of two objects becomes very large (due to $C$), when their relative starting label in the condensed video ($l_i - l_j$) is not exactly same as in the input video ($\hat{l}_i - \hat{l}_j$). Conversely, the objects far from each other in spatio-temporal domain have a low penalty for violating the condition ($\hat{l}_i - \hat{l}_j = l_i - l_j$), because their $p_I$ has a small value.
 
-As similar to $E_s$, the role of $E_t$ is not significant in online video synopsis. Recent online video synopsis frameworks~\cite{} maintain a queue of object tubes and the queue grows as new object tube is extracted in the input video. When the size of the queue exceeds a certain threshold $K$, framework generates a partial condensed video with $K$ object tubes, and then removes the first $K$ objects from the queue. Based on the framework, chronological disorders only can be presented when the objects are in the same part of the condensed video. Even if the objects are optimized together to generate a same part of the resulting synopsis video, their temporal inconsistencies are negligible, because their relative spatio-temporal distance is small. In consequence, the one and only energy term to optimize in online video synopsis is the collision energy.
+As similar to $E_s$, the role of $E_t$ is not significant in online video synopsis. Recent online video synopsis frameworks~\cite{Fu2014,He2017} maintain a queue of object tubes and the queue grows as new object tube is extracted in the input video. When the size of the queue exceeds a certain threshold $K$, framework generates a partial condensed video with $K$ object tubes, and then removes the first $K$ objects from the queue. Based on the framework, chronological disorders only can be presented when the objects are in the same part of the condensed video. Even if the objects are optimized together to generate a same part of the resulting synopsis video, their temporal inconsistencies are negligible, because their relative spatio-temporal distance is small. In consequence, the one and only energy term to optimize in online video synopsis is the collision energy.
 
 \section{Collision energy}
 The key role of $E_c$ is to prevent the resulting synopsis video from becoming crowded. During the video synopsis process, the objects from different time periods in the input video are displayed simultaneously in the same scene of the condensed video. In this case, pixel overlaps between the objects make us difficult to understand the context of the synopsis video. To penalize such situation through $E_c$, a degree of collision between the objects is defined as
@@ -177,7 +191,7 @@ IoU(B_i,B_j)=\frac{B_i \cap B_j}{B_i \cup B_j},
 where $B_i(t)$ and $B_j(t)$ are bounding boxes of $i^{\rm{th}}$ and $j^{\rm{th}}$ objects at frame $t$, respectively. Since the bounding box does not represent an exact location of the object, (\ref{eq:EcApprox}) can be thought as an approximated version of (\ref{eq:Ec}).
 
 \section{Computational bottleneck}
-In (\ref{eq:basic_form}), we should note that energies can be categorized into two groups regarding the number of required parameters: unary and pairwise. Activity and background consistency only requires a single object tube to calculate the energies; on the other hand, remaining energies require two object tubes for the calculation. When the number of objects to optimize increases, pairwise energy terms become a bottleneck of the computation. Since $E_s$ is not the main concern of online video synopsis, $E_c$ becomes the one and only issue for the computational burden. As described in \Cref{sec:intro:related}, recent studies of video synopsis~\ref{} utilize different calculations of $E_c$, but their definitions of the collision energy are not suitable for parallel processing. In the following section, a new representation of the object tube named as an occupation matrix which has a suitable form for concurrent computation of $E_c$ will be introduced.
+In (\ref{eq:basic_form}), we should note that energies can be categorized into two groups regarding the number of required parameters: unary and pairwise. Activity and background consistency only requires a single object tube to calculate the energies; on the other hand, remaining energies require two object tubes for the calculation. When the number of objects to optimize increases, pairwise energy terms become a bottleneck of the computation. Since $E_s$ is not the main concern of online video synopsis, $E_c$ becomes the one and only issue for the computational burden. As described in \Cref{sec:intro:related}, recent studies of video synopsis~\cite{He2017} utilize different calculations of $E_c$, but their definitions of the collision energy are not suitable for parallel processing. In the following section, a new representation of the object tube named as an occupation matrix which has a suitable form for concurrent computation of $E_c$ will be introduced.
 
 \begin{sidewaysfigure}
 \includegraphics[width=\linewidth]{flowchart.pdf}
@@ -235,15 +249,15 @@ Since the probabilistic occupation matrix $\textbf{M}_i^p$ represents the existe
 \end{equation}
 where $|C(u,v)|$ is a cardinality of $C(u,v)$. In most cases, where $\mathcal{W}/\mathcal{N} \in \mathbb{N}$ and $\mathcal{H}/\mathcal{M} \in \mathbb{N}$, $|C(u,v)|$ becomes a constant value.
 
-\subsection{Binary vs. probabilistic}
-The main role of the occupation matrix is to provide a spatial approximation of $\textbf{F}_i$. Since both representations can achieve the objective, selecting the type of the occupation matrix is same as considering the trade-off between the accuracy and computation time. In general, using $\textbf{M}_i^p$ can produce more compact synopsis video with more computational burden. On the other hand, the scene in the condensed video based on $\textbf{M}_i^b$ is less complex and can be generated with less computation. Quantitative evaluations regarding the type of the occupation matrix will be given in \Cref{sec:exp}.
+%\subsection{Binary vs. probabilistic}
+%The main role of the occupation matrix is to provide a spatial approximation of $\textbf{F}_i$. Since both representations can achieve the objective, selecting the type of the occupation matrix is same as considering the trade-off between the accuracy and computation time. In general, using $\textbf{M}_i^p$ can produce more compact synopsis video with more computational burden. On the other hand, the scene in the condensed video based on $\textbf{M}_i^b$ is less complex and can be generated with less computation. Quantitative evaluations regarding the type of the occupation matrix will be given in \Cref{sec:exp}.
 
 \section{Objective function}
 For the next step, the collision energy is reformulated with the occupation matrix and a new energy term $E_l$ is introduced to penalize a long condensed video. Then, the final objective function of the proposed tube rearrangement algorithm is defined by considering both $E_c$ and $E_l$. 
 \begin{sidewaysfigure}
 	\centering
 	\includegraphics[width=0.8\linewidth]{hadamard-prod.pdf}
-	\caption{Example calculation of reformulated collision energy $E_c$ with two binary occupation matrices. Occupied elements in the matrix are colored in red and blue. After the element-wise multiplication, we can see that the objects have two collided elements colored in magenta. In this figure, $\odot$ is an operator for the element-wise multiplication, also known as Hadamard product~\cite{}.}
+	\caption{Example calculation of reformulated collision energy $E_c$ with two binary occupation matrices. Occupied elements in the matrix are colored in red and blue. After the element-wise multiplication, we can see that the objects have two collided elements colored in magenta. In this figure, $\odot$ is an operator for the element-wise multiplication, also known as Hadamard product.}
 	\label{fig:hadamard_prod}
 \end{sidewaysfigure}
 \subsection{Reformulated collision energy}
@@ -277,7 +291,7 @@ E(l_i, l_j) = E_c(l_i, l_j) + \lambda E_L(l_i, l_j),
 where $\lambda$ is a weighting parameter adjusting the importance of the length energy. In general, the larger $\lambda$ generates the shorter but more complex synopsis video; on the other hand, the smaller $\lambda$ produces the longer but less confused condensed video.
 
 \section{Optimizing objective function}
-As in other online video synopsis algorithms~\cite{}, the proposed tube rearrangement algorithm adopts the stepwise optimization strategy; therefore, starting labels of the object tubes are determined one by one through iterations. At the $i^{\rm{th}}$ iteration of the optimization, the starting label of $i^{\rm{th}}$ object tube $l_i$ is determined as
+As in other online video synopsis algorithms~\cite{Fu2014,JianqingZhu2015,He2017}, the proposed tube rearrangement algorithm adopts the stepwise optimization strategy; therefore, starting labels of the object tubes are determined one by one through iterations. At the $i^{\rm{th}}$ iteration of the optimization, the starting label of $i^{\rm{th}}$ object tube $l_i$ is determined as
 \begin{equation}
 \label{eq:starting_label}
 l_i = \arg\min_l E(l, L_{i-1}) \textrm{ subject to } l_i \geq 0,
@@ -325,13 +339,13 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 	\centering
 	\subfloat[2D Hadamard products]
 	{
-		\includegraphics[width=\linewidth]{3d-hadamard-prod.pdf}
+		\includegraphics[width=0.9\linewidth]{3d-hadamard-prod.pdf}
 		\label{fig:3d_hadamard}
 	}
 	\qquad
 	\subfloat[1D cross-correlations]
 	{
-		\includegraphics[width=\linewidth]{1d-cross-corr.pdf}
+		\includegraphics[width=0.9\linewidth]{1d-cross-corr.pdf}
 		\label{fig:1d_cross_corr}
 	}
 	\caption{Two ways of calculating $E_c$. All of occupation matrices in this figure have $6 \times 8 \times 3$ spatio-temporal resolution. $E_c$ can be calculated by using \protect\subref{fig:3d_hadamard} Hadamard products between two sets of frames, and \protect\subref{fig:1d_cross_corr} 1D cross correlations between 48 pairs of 1D signals. Three primitive colors (red, green, and blue) in this figure is used to show example correspondences.}
@@ -365,7 +379,7 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 \end{algorithm}
 \chapter{Online video synopsis framework}
 \label{sec:framework}
-The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks~\cite{}, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. Among them, three components, except for the tube rearrangement, will be explained in detail.
+The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks~\cite{Fu2014,JianqingZhu2015,He2017}, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. Among them, three components, except for the tube rearrangement, will be explained in detail.
 
 \section{Background modeling}
 Since this field of research has been studied for decades, there are numerous choices for modeling the background. According to the recent review literature~\cite{bouwmans2018deep}, apart from well-established statistical background modelings~\cite{Zivkovic2004,Zivkovic2006,Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe,Hofmann2012,Muchtar2018} and neural network based approaches~\cite{maddalena2008self,maddalena2012sobs}, deep learning based approaches become a main stream of the research and they can be categorized into two broad groups: convolutional neural networks (CNN)~\cite{Patil2018,Lim2018} and generative adversarial network (GAN)~\cite{Bakkay2018,Sultana2019,Sakkos2019}.
@@ -376,6 +390,7 @@ Since this field of research has been studied for decades, there are numerous ch
 	\caption{Flowchart of foreground segmentation by Lim~\etal~\cite{Lim2018}. It follows the common process of the image segmentation, but its performance has been increased by incorporating feature maps from multiple scales.}
 	\label{fig:bg_dcnn}
 \end{sidewaysfigure}
+
 \Cref{fig:bg_dcnn} shows a process of segmenting the foreground from the background introduced by Lim~\etal~\cite{Lim2018}. This process has a lot in common with image segmentation using CNN architecture~\cite{Long2015,chen2014semantic,chen2017rethinking,Zhao2017,chen2018deeplab,chen2018encoder}; encoder module is for extracting feature maps and decoder module is for compensating reduced spatial resolution. The key difference between the foreground and image segmentation is the number of output labels; the former produces only two labels while the latter discerns more than 20 labels for renowned PASCAL VOC 2012 dataset~\cite{Everingham15} and 30 labels for Cityscapes dataset targeted for the autonomous driving application~\cite{Cordts2016Cityscapes}.
 
 \begin{figure}
@@ -388,6 +403,7 @@ GAN is one of the most actively researched topics in the computer vision. Due to
 
 \begin{sidewaystable}
 	\centering
+	\small
 	\begin{tabular}{llllllllllll}
 		\hline\hline
 		Methods & I\_SL & I\_CA & I\_OC & I\_IL & I\_MB & I\_BS & O\_CL & O\_RA & O\_SN & O\_SU & Average \\
@@ -448,7 +464,7 @@ For online video synopsis, generated object tubes are stored and maintained in a
 		{
 			\subfloat[Sources/destinations]
 			{
-				\begin{minipage}{\linewidth}
+				\begin{minipage}[t][5cm][t]{0.9\linewidth}
 					\centering
 					\includegraphics[height=0.05\textheight]{poisson_src2-1.eps}
 					\vfill
@@ -463,7 +479,10 @@ For online video synopsis, generated object tubes are stored and maintained in a
 		{
 			\subfloat[Cloning]
 			{
-				\includegraphics[height=0.255\textheight]{poisson_cloning2.eps}
+				\begin{minipage}[t][5cm][t]{0.9\linewidth}
+					\centering
+					\includegraphics[width=0.9\linewidth]{poisson_cloning2.eps}
+				\end{minipage}
 			}
 		}
 		\hskip1em
@@ -471,7 +490,10 @@ For online video synopsis, generated object tubes are stored and maintained in a
 		{
 			\subfloat[Seamless cloning]
 			{
-				\includegraphics[height=0.255\textheight]{poisson_seamless_cloning2.eps}
+				\begin{minipage}[t][5cm][t]{0.9\linewidth}
+					\centering
+					\includegraphics[width=0.9\linewidth]{poisson_seamless_cloning2.eps}
+				\end{minipage}
 			}
 		}
 	}
@@ -519,7 +541,7 @@ The equation (\ref{eq:poisson2}) means that the Laplacian of the inserted region
 	\caption{Proposed online video synopsis framework. The framework generates a partial condensed video whenever the size of the queue exceeds $K$. Then, partial videos are merged into the complete synopsis video.}
 	\label{fig:framework}
 \end{figure}
-As shown in \Cref{fig:framework}, online video synopsis generates a small portion of the condensed video containing $K$ object tubes after each tube rearrangement step. If we have $20 \times K$ object tubes, there will be 20 portions of the condensed video. At the time of the user request, these portions are merged into the complete synopsis video. During the merging process, if we could not properly handle the transitions between the one portion to another, the users might notice the abrupt changes in the scene as illustrated in \ref{}. This problem is called as a discontinuity of motion flow. One simple yet efficient way to prevent such discontinuity is considering tails of the object tubes in the previous iteration during the current step~\cite{Fu2014}. \Cref{fig:discontinuity} shows diagrams to explain the solution.
+As shown in \Cref{fig:framework}, online video synopsis generates a small portion of the condensed video containing $K$ object tubes after each tube rearrangement step. If we have $20 \times K$ object tubes, there will be 20 portions of the condensed video. At the time of the user request, these portions are merged into the complete synopsis video. During the merging process, if we could not properly handle the transitions between the one portion to another, the users might notice the abrupt changes in the scene. This problem is called as a discontinuity of motion flow. One simple yet efficient way to prevent such discontinuity is considering tails of the object tubes in the previous iteration during the current step~\cite{Fu2014}. \Cref{fig:discontinuity} shows diagrams to explain the solution.
 \begin{figure}
 	\subfloat[Rearranged tubes after $1^{\rm{st}}$ iteration]
 	{
@@ -544,14 +566,14 @@ In this chapter, the performance of the proposed tube rearrangement algorithm is
 
 FR is defined as a ratio of the condensed video length to the original video.
 \begin{equation}
-FR = \frac{\mathcal{T}^{*}}{\mathcal{T}},
+\textrm{FR} = \frac{\mathcal{T}^{*}}{\mathcal{T}},
 \end{equation}
 where $\mathcal{T}^{*}$ and $\mathcal{T}$ are lengths of the condensed and original videos, respectively. Smaller FR is better for reducing time consumption of browsing contents of the video.
 
 CR indicates that how many pixels in the condensed video are occupied by the objects and is defined as
 \begin{equation}
 \label{eq:CR}
-CR=\frac{1}{\mathcal{W}\mathcal{H}\mathcal{T}^{*}}\sum_{x=1}^{\mathcal{W}}\sum_{y=1}^{\mathcal{H}}\sum_{t=1}^{\mathcal{T}^{*}} F^{*}(x,y,t),
+\textrm{CR}=\frac{1}{\mathcal{W}\mathcal{H}\mathcal{T}^{*}}\sum_{x=1}^{\mathcal{W}}\sum_{y=1}^{\mathcal{H}}\sum_{t=1}^{\mathcal{T}^{*}} F^{*}(x,y,t) = \frac{|F^{*}|}{\mathcal{W}\mathcal{H}\mathcal{T}^{*}},
 \end{equation}
 where $F^{*}$ is a foreground volume of the condensed video. Each element of $F^{*}$ is defined as
 \begin{equation}
@@ -565,11 +587,11 @@ where $I^{*}(x,y,t)$ is a pixel of the condensed video and $B_t(x,y,t)$ is a pix
 
 OR is proportional to the number of overlapped foreground pixels in the condensed video and defined as
 \begin{equation}
-OR=\frac{1}{\mathcal{W}\mathcal{H}\mathcal{T}^{*}}\sum_{x=1}^{\mathcal{W}}\sum_{y=1}^{\mathcal{H}}\sum_{t=1}^{\mathcal{T}^{*}} O(x,y,t),
+\textrm{OR}=\frac{1}{|F^{*}|}\sum_{x=1}^{\mathcal{W}}\sum_{y=1}^{\mathcal{H}}\sum_{t=1}^{\mathcal{T}^{*}} O(x,y,t)=\frac{|O|}{|F^{*}|},
 \end{equation}
-where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending foreground pixels of two or more objects with $B_t(x,y,t)$; otherwise, it produces 0. If OR is small, we can easily distinguish rearranged objects in the synopsis video; therefore, we are more likely to understand the summarized information better.
+where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending foreground pixels of two or more objects with $B_t(x,y,t)$; otherwise, it produces 0. If OR is small, we can easily distinguish rearranged objects in the synopsis video; therefore, we can understand the summarized information better.
 
-The last but not least RT is a metric to compare computational complexity of the algorithm and measured in milliseconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
+The last but not least RT is a metric to compare computational complexity of the algorithm and measured in seconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
 
 \section{Test video sequences}
 For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_perf}. Some examples of the test sequences are depicted in \Cref{fig:examples}.
@@ -632,9 +654,10 @@ Subway station plaza is an open place in front of the subway station entrance. S
 \end{table}
 
 \section{Performance analysis}
-The experiments in this section are designed to 1) find optimum parameters for the proposed tube rearrangement algorithm, 2) prove the efficiency of the parallelized tube rearrangement, and 3) compare performances of several different online tube rearrangement algorithms.
+The experiments in this section are designed to 1) find optimum parameters for the proposed tube rearrangement algorithm, 2) conduct an ablation study for two speed up techniques, and 3) compare performances of several different online tube rearrangement algorithms.
 
 \subsection{Optimum parameters}
+\label{sec:exp:param}
 There are four necessary parameters for the proposed tube rearrangement algorithm: the weight parameter of the length energy $\lambda$, the size of the occupation matrix $\mathcal{M}\times\mathcal{N}$, the type of the occupation matrix, and the size of the queue $K$. Apart from six test sequences used for the performance evaluation, additional five video clips are prepared to find optimum parameters and detail characteristics of the videos are summarized in Table~\ref{tb:video_param}.
 \begin{table}
 	\begin{center}
@@ -662,15 +685,25 @@ There are four necessary parameters for the proposed tube rearrangement algorith
 
 \subsubsection{Weight parameter of length energy}
 \label{sec:exp:weight}
-First experiment measures the four performance metrics by changing $\lambda$ from 1 to 5000. Remaining parameters are fixed as $\mathcal{M}\times\mathcal{N}=9\times16$, $K=20$, and the algorithm utilizes the binary occupation matrix. Except for RT, other three metrics have similar scales; hence, FR, CR and OR are depicted together in \Cref{fig:exp:lambda}. On the other hand, RT for five sequences are grouped and summarized in \Cref{fig:exp:lambda:RT}. 
+First experiment measures the four performance metrics by changing $\lambda$ from 1 to 5000. Remaining parameters are fixed as $\mathcal{M}\times\mathcal{N}=9\times16$, $K=20$, and the algorithm produces results for both binary and probabilistic occupation matrices. Except for RT, other three metrics have similar scales; hence, FR, CR and OR are depicted together in \Cref{fig:exp:lambda}. On the other hand, RT for five sequences are grouped and summarized in \Cref{fig:exp:lambda:RT}. 
 
-As expected, FR decreases when the proposed algorithm pays more attention to the length energy (increasing $\lambda$). On the other hand, CR and OR do not change as much as FR. As shown in \Cref{fig:exp:lambda:RT}, we can see that RT is proportional to the number of object tubes in the original video, and tends to decrease as $\lambda$ increases. This result is quite obvious, because small number of object tubes and less frames to consider reduce the computational burden. One interesting result is shown in \Cref{fig:exp:lambda:b}, where FR is larger than 1 for $\lambda \in \{1, 10, 50\}$. This result is induced by two factors: small $\lambda$ and large number of object tubes having similar paths. When $\lambda$ is small, the proposed algorithm focuses on reducing collisions rather than making a short length video. In addition, when large number of objects share the common path in the scene, it is hard to avoid collisions between the objects moving along the path. One straightforward solution for the rearrangement problem under these conditions is minimizing the overlapped time region between the objects. In other words, the algorithm rearranges object tubes like linked sausages and the resulting video may have a longer length than the original one. To avoid such undesirable solution, selecting sufficiently large $\lambda$ is important for the proposed algorithm. However, when $\lambda$ exceeds some value, four metrics become saturated, which means that the algorithm primarily considers the length energy. This solution is not desirable neither; therefore, we need to choose a balanced value of $\lambda$ and 100 is selected as the value.
+As expected, FR decreases when the proposed algorithm pays more attention to the length energy (increasing $\lambda$). On the other hand, CR and OR do not change as much as FR. As shown in \Cref{fig:exp:lambda:RT}, we can see that RT is proportional to the number of object tubes in the original video, and tends to decrease as $\lambda$ increases. This result is quite obvious, because small number of object tubes and less frames to consider reduce the computational burden.
+
+One interesting result is shown in \Cref{fig:exp:lambda:b}, where FR is larger than 1 for $\lambda \in \{1, 10, 50\}$ with binary occupation matrix and $\lambda=1$ with probabilistic occupation matrix. This result is induced by two factors: small $\lambda$ and large number of object tubes having similar paths. When $\lambda$ is small, the proposed algorithm focuses on reducing collisions rather than making a short length video. In addition, when large number of objects share the common path in the scene, it is hard to avoid collisions between the objects moving along the path. One straightforward solution for the rearrangement problem under these conditions is minimizing the overlapped time region between the objects. In other words, the algorithm rearranges object tubes like linked sausages and the resulting video may have a longer length than the original one. To avoid such undesirable solution, selecting sufficiently large $\lambda$ is important for the proposed algorithm. However, when $\lambda$ exceeds some value, four metrics become saturated, which means that the algorithm primarily considers the length energy. This solution is not desirable neither; therefore, we need to choose a balanced value of $\lambda$.
+
+For selecting the value of $\lambda$, different behaviors of the binary and probabilistic occupation matrices should be considered. As you can see in \Cref{fig:exp:lambda,fig:exp:lambda:RT}, when $K$ increases, the algorithm utilizing the probabilistic occupation matrix approaches to the saturation point faster than the one using the binary occupation matrix. Therefore, with same $\lambda$, the probabilistic occupation matrix allows the algorithm to produce the shorter synopsis video than the binary occupation matrix; it other words, it has better FR and CR, but higher OR than its counterpart. Based on the observation, it is better to select different $\lambda$ for the probabilistic and binary occupation matrices. However, for easier parameter analysis in following sections, both types of the occupation matrix utilize $\lambda$ of 100.
 
 \pgfplotstableread[col sep=comma]{exp_bin_occ/crossroad03_length_param.csv}\tableLambdaOne
 \pgfplotstableread[col sep=comma]{exp_bin_occ/library02_length_param.csv}\tableLambdaTwo
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance02_length_param.csv}\tableLambdaThree
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance03_length_param.csv}\tableLambdaFour
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance04_length_param.csv}\tableLambdaFive
+
+\pgfplotstableread[col sep=comma]{exp_prob_occ/crossroad03_length_param.csv}\tableProbLambdaOne
+\pgfplotstableread[col sep=comma]{exp_prob_occ/library02_length_param.csv}\tableProbLambdaTwo
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance02_length_param.csv}\tableProbLambdaThree
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance03_length_param.csv}\tableProbLambdaFour
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance04_length_param.csv}\tableProbLambdaFive
 
 \begin{figure}
 	\centering
@@ -686,11 +719,17 @@ As expected, FR decreases when the proposed algorithm pays more attention to the
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableLambdaOne};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableLambdaOne};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableLambdaOne};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbLambdaOne};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbLambdaOne};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbLambdaOne};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -709,11 +748,17 @@ As expected, FR decreases when the proposed algorithm pays more attention to the
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableLambdaTwo};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableLambdaTwo};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableLambdaTwo};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbLambdaTwo};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbLambdaTwo};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbLambdaTwo};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -735,11 +780,17 @@ As expected, FR decreases when the proposed algorithm pays more attention to the
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableLambdaThree};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableLambdaThree};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableLambdaThree};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbLambdaThree};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbLambdaThree};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbLambdaThree};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -757,11 +808,17 @@ As expected, FR decreases when the proposed algorithm pays more attention to the
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableLambdaFour};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableLambdaFour};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableLambdaFour};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbLambdaFour};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbLambdaFour};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbLambdaFour};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -782,58 +839,99 @@ As expected, FR decreases when the proposed algorithm pays more attention to the
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableLambdaFive};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableLambdaFive};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableLambdaFive};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbLambdaFive};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbLambdaFive};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbLambdaFive};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
 	}
 	\caption{(continued) Result of the experiment conducted by changing $\lambda$.}
 \end{figure}
-\begin{figure}
+\begin{sidewaysfigure}
 	\centering
-	\begin{tikzpicture}[scale = 1.0]
-	\begin{axis}[
-	title = {Running time},
-	xlabel = {$\lambda$},
-	ylabel = {Seconds},
-	xtick = data,
-	xticklabels from table = {\tableLambdaOne}{Domain},
-	legend pos = outer north east,
-	grid = major,
-	]
-	
-	\addplot table [x expr=\coordindex, y=RT] {\tableLambdaOne};
-	\addlegendentry{Crossroad III}
-	\addplot table [x expr=\coordindex, y=RT] {\tableLambdaTwo};
-	\addlegendentry{Library lobby II}
-	\addplot table [x expr=\coordindex, y=RT] {\tableLambdaThree};
-	\addlegendentry{Subway station plaza II}
-	\addplot table [x expr=\coordindex, y=RT] {\tableLambdaFour};
-	\addlegendentry{Subway station plaza III}
-	\addplot table [x expr=\coordindex, y=RT] {\tableLambdaFive};
-	\addlegendentry{Subway station plaza IV}
-	
-	\end{axis}
-	\end{tikzpicture}
-	\caption{RTs measured by changing $\lambda$ for five sequences.}
+	\subfloat[Binary occupation matrix]
+	{
+		\begin{tikzpicture}[scale = 1.0]
+		\begin{axis}[
+		title = {Running time},
+		xlabel = {$\lambda$},
+		ylabel = {Seconds},
+		ymax = 5,
+		xtick = data,
+		xticklabels from table = {\tableLambdaOne}{Domain},
+		grid = major,
+		]
+		
+		\addplot table [x expr=\coordindex, y=RT] {\tableLambdaOne};
+		\addplot table [x expr=\coordindex, y=RT] {\tableLambdaTwo};
+		\addplot table [x expr=\coordindex, y=RT] {\tableLambdaThree};
+		\addplot table [x expr=\coordindex, y=RT] {\tableLambdaFour};
+		\addplot table [x expr=\coordindex, y=RT] {\tableLambdaFive};
+		
+		\end{axis}
+		\end{tikzpicture}
+	}
+	\subfloat[Probabilistic occupation matrix]
+	{
+		\begin{tikzpicture}[scale = 1.0]
+		\begin{axis}[
+		title = {Running time},
+		xlabel = {$\lambda$},
+		ymax = 5,
+		xtick = data,
+		xticklabels from table = {\tableLambdaOne}{Domain},
+		legend pos = outer north east,
+		grid = major,
+		]
+		
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbLambdaOne};
+		\addlegendentry{VC7}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbLambdaTwo};
+		\addlegendentry{VC8}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbLambdaThree};
+		\addlegendentry{VC9}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbLambdaFour};
+		\addlegendentry{VC10}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbLambdaFive};
+		\addlegendentry{VC11}
+		
+		\end{axis}
+		\end{tikzpicture}
+	}
+	\caption{RT of the proposed algorithm measured by changing $\lambda$ for five sequences.}
 	\label{fig:exp:lambda:RT}
-\end{figure}
+\end{sidewaysfigure}
 
 \subsubsection{Size of occupation matrix}
 \label{sec:exp:occ}
-Second experiment is conducted by changing spatial resolution $\mathcal{M}\times\mathcal{N}$ of the occupation matrix. Assume that the aspect ratio of the input video is 16:9 (the ratio of the width to the height). Based on the assumption, four candidates of $\mathcal{M}\times\mathcal{N}$ are considered in this experiment: $9\times16$, $18\times32$, $36\times64$, and $72\times128$. Remaining parameters are fixed as $\lambda=100$ and $K=20$ and the algorithm utilizes the binary occupation matrix. 
+Second experiment is conducted by changing spatial resolution $\mathcal{M}\times\mathcal{N}$ of the occupation matrix. Assume that the aspect ratio of the input video is 16:9 (the ratio of the width to the height). Based on the assumption, four candidates of $\mathcal{M}\times\mathcal{N}$ are considered in this experiment: $9\times16$, $18\times32$, $36\times64$, and $72\times128$. Remaining parameters are fixed as $\lambda=100$ and $K=20$ and the algorithm utilizes both binary and probabilistic occupation matrices.
 
-The larger binary occupation matrix has a better ability to encode the locations of the objects; therefore, the algorithm can finely adjust starting labels to avoid collisions. Then, the resulting video has lower FR and higher CR than the one using the smaller occupation matrix as shown in \Cref{fig:exp:occ}. On the other hand, reducing spatial resolution of the occupation matrix drastically increases the computation speed as depicted in \Cref{fig:exp:occ:RT}. Especially, according to \Cref{tb:exp:occ:RT}, the computation time is reduced by at least 1/40, when the width and height of the occupation matrix are scaled by 1/8 (from $72\times128$ to $9\times16$). Even though increasing $\mathcal{M}\times\mathcal{N}$ has definite advantages in FR and CR, degradation of the computation speed is too serious to be neglected. Therefore, the smallest resolution of the occupation matrix ($9\times16$) is utilized in this dissertation. 
+The larger binary occupation matrix has a better ability to encode the locations of the objects; therefore, the algorithm can finely adjust starting labels to avoid collisions. Then, the resulting video has lower FR and higher CR than the one using the smaller occupation matrix as shown in \Cref{fig:exp:occ}. However, interestingly, increasing the resolution of the probabilistic occupation matrix does not affect to the performance regarding three metrics. This indicates that even the low resolution probabilistic occupation matrix has already got enough capability to express fine locations of the objects.
+
+In terms of RT, reducing spatial resolution for both types of the occupation matrix drastically increases the computation speed of the algorithm as depicted in \Cref{fig:exp:occ:RT}. According to \Cref{tb:exp:occ:RT}, in overall, the probabilistic occupation matrix can compute rearranged starting labels faster than the binary occupation matrix; however, the tendency of the computation time for different $\mathcal{M}\times\mathcal{N}$ is almost identical. Especially, the computation time for both types of the occupation matrix is reduced by at least 1/40, when the width and height of the matrix are scaled by 1/8 (from $72\times128$ to $9\times16$).
+
+In summary, there are definite advantages in FR and CR for increasing the spatial resolution of the binary matrix; however, the degradation of the computation speed is too serious to be neglected. On the other hand, large probabilistic occupation matrix does not have any advantages regarding the performance metrics, and even with the low resolution matrix, the algorithm can have a better condensation ability than the one uses the high resolution binary matrix. Therefore, for both types of the occupation matrix, the smallest resolution ($9\times16$) is preferred in this dissertation.
 
 \pgfplotstableread[col sep=comma]{exp_bin_occ/crossroad03_size_of_occupation_matrix.csv}\tableOccSzOne
 \pgfplotstableread[col sep=comma]{exp_bin_occ/library02_size_of_occupation_matrix.csv}\tableOccSzTwo
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance02_size_of_occupation_matrix.csv}\tableOccSzThree
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance03_size_of_occupation_matrix.csv}\tableOccSzFour
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance04_size_of_occupation_matrix.csv}\tableOccSzFive
+
+\pgfplotstableread[col sep=comma]{exp_prob_occ/crossroad03_size_of_occupation_matrix.csv}\tableProbOccSzOne
+\pgfplotstableread[col sep=comma]{exp_prob_occ/library02_size_of_occupation_matrix.csv}\tableProbOccSzTwo
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance02_size_of_occupation_matrix.csv}\tableProbOccSzThree
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance03_size_of_occupation_matrix.csv}\tableProbOccSzFour
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance04_size_of_occupation_matrix.csv}\tableProbOccSzFive
 
 \begin{figure}
 	\centering
@@ -849,11 +947,17 @@ The larger binary occupation matrix has a better ability to encode the locations
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableOccSzOne};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableOccSzOne};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableOccSzOne};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbOccSzOne};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbOccSzOne};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbOccSzOne};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -871,11 +975,17 @@ The larger binary occupation matrix has a better ability to encode the locations
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableOccSzTwo};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableOccSzTwo};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableOccSzTwo};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbOccSzTwo};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbOccSzTwo};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbOccSzTwo};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -898,11 +1008,17 @@ The larger binary occupation matrix has a better ability to encode the locations
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableOccSzThree};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableOccSzThree};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableOccSzThree};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbOccSzThree};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbOccSzThree};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbOccSzThree};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -920,11 +1036,17 @@ The larger binary occupation matrix has a better ability to encode the locations
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableOccSzFour};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableOccSzFour};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableOccSzFour};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbOccSzFour};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbOccSzFour};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbOccSzFour};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -945,78 +1067,143 @@ The larger binary occupation matrix has a better ability to encode the locations
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableOccSzFive};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableOccSzFive};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableOccSzFive};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbOccSzFive};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbOccSzFive};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbOccSzFive};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
 	}
 	\caption{(continued) Result of the experiment conducted by changing $\mathcal{M}\times\mathcal{N}$.}
 \end{figure}
-\begin{figure}
+\begin{sidewaysfigure}
 	\centering
-	\begin{tikzpicture}[scale = 1.0]
-	\begin{axis}[
-	title = {Running time},
-	xlabel = {$\mathcal{M}\times\mathcal{N}$},
-	ylabel = {Seconds},
-	xtick = data,
-	xticklabels from table = {\tableOccSzOne}{Domain},
-	legend pos = outer north east,
-	grid = major,
-	]
-	
-	\addplot table [x expr=\coordindex, y=RT] {\tableOccSzOne};
-	\addlegendentry{Crossroad III}
-	\addplot table [x expr=\coordindex, y=RT] {\tableOccSzTwo};
-	\addlegendentry{Library lobby II}
-	\addplot table [x expr=\coordindex, y=RT] {\tableOccSzThree};
-	\addlegendentry{Subway station plaza II}
-	\addplot table [x expr=\coordindex, y=RT] {\tableOccSzFour};
-	\addlegendentry{Subway station plaza III}
-	\addplot table [x expr=\coordindex, y=RT] {\tableOccSzFive};
-	\addlegendentry{Subway station plaza IV}
-	
-	\end{axis}
-	\end{tikzpicture}
-	\caption{RTs measured by changing $\mathcal{M}\times\mathcal{N}$ for five sequences.}
+	\subfloat[Binary occupation matrix]
+	{
+		\begin{tikzpicture}[scale = 1.0]
+		\begin{axis}[
+		title = {Running time},
+		xlabel = {$\mathcal{M}\times\mathcal{N}$},
+		ylabel = {Seconds},
+		ymax = 160,
+		xtick = data,
+		xticklabels from table = {\tableOccSzOne}{Domain},
+		legend pos = outer north east,
+		grid = major,
+		]
+		
+		\addplot table [x expr=\coordindex, y=RT] {\tableOccSzOne};
+		\addplot table [x expr=\coordindex, y=RT] {\tableOccSzTwo};
+		\addplot table [x expr=\coordindex, y=RT] {\tableOccSzThree};
+		\addplot table [x expr=\coordindex, y=RT] {\tableOccSzFour};
+		\addplot table [x expr=\coordindex, y=RT] {\tableOccSzFive};
+		
+		\end{axis}
+		\end{tikzpicture}
+	}
+	\subfloat[Probabilistic occupation matrix]
+	{
+		\begin{tikzpicture}[scale = 1.0]
+		\begin{axis}[
+		title = {Running time},
+		xlabel = {$\mathcal{M}\times\mathcal{N}$},
+		xtick = data,
+		ymax = 160,
+		xticklabels from table = {\tableOccSzOne}{Domain},
+		legend pos = outer north east,
+		grid = major,
+		]
+		
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbOccSzOne};
+		\addlegendentry{VC7}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbOccSzTwo};
+		\addlegendentry{VC8}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbOccSzThree};
+		\addlegendentry{VC9}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbOccSzFour};
+		\addlegendentry{VC10}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbOccSzFive};
+		\addlegendentry{VC11}
+		
+		\end{axis}
+		\end{tikzpicture}
+	}
+	\caption{RT of the proposed algorithm measured by changing $\mathcal{M}\times\mathcal{N}$ for five sequences.}
 	\label{fig:exp:occ:RT}
-\end{figure}
+\end{sidewaysfigure}
+
 \pgfplotstableset{
 	create on use/Domain/.style={
 		create col/set list={$9\times16$,$18\times32$,$36\times64$,$64\times128$}},
-	columns/Domain/.style={string type},
 }
 \pgfplotstablenew[columns={Domain}]{4}\tableOccSzRT
-\pgfplotstablecreatecol[copy column from table={\tableOccSzOne}{RT}]{VC7}{\tableOccSzRT}
-\pgfplotstablecreatecol[copy column from table={\tableOccSzTwo}{RT}]{VC8}{\tableOccSzRT}
-\pgfplotstablecreatecol[copy column from table={\tableOccSzThree}{RT}]{VC9}{\tableOccSzRT}
-\pgfplotstablecreatecol[copy column from table={\tableOccSzFour}{RT}]{VC10}{\tableOccSzRT}
-\pgfplotstablecreatecol[copy column from table={\tableOccSzFive}{RT}]{VC11}{\tableOccSzRT}
-\begin{table}
+\pgfplotstablecreatecol[copy column from table={\tableOccSzOne}{RT}]{VC7Bin}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableProbOccSzOne}{RT}]{VC7Prob}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableOccSzTwo}{RT}]{VC8Bin}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableProbOccSzTwo}{RT}]{VC8Prob}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableOccSzThree}{RT}]{VC9Bin}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableProbOccSzThree}{RT}]{VC9Prob}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableOccSzFour}{RT}]{VC10Bin}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableProbOccSzFour}{RT}]{VC10Prob}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableOccSzFive}{RT}]{VC11Bin}{\tableOccSzRT}
+\pgfplotstablecreatecol[copy column from table={\tableProbOccSzFive}{RT}]{VC11Prob}{\tableOccSzRT}
+\begin{sidewaystable}
 	\centering
 	\pgfplotstabletypeset[
 	every first column/.style={string type, column name={}},
-	every head row/.style={before row=\toprule, after row=\midrule},
-	every last row/.style={after row=\bottomrule},
+	every head row/.style={
+		before row={
+			\toprule
+			& \multicolumn{2}{c}{VC7} & \multicolumn{2}{c}{VC8} & \multicolumn{2}{c}{VC9} & \multicolumn{2}{c}{VC10} & \multicolumn{2}{c}{VC11}\\
+		},
+		after row=\midrule,
+	},
+	every last row/.style={
+		after row=\bottomrule},
+	columns/VC7Bin/.style={column name=Bin.},
+	columns/VC8Bin/.style={column name=Bin.},
+	columns/VC9Bin/.style={column name=Bin.},
+	columns/VC10Bin/.style={column name=Bin.},
+	columns/VC11Bin/.style={column name=Bin.},
+	columns/VC7Prob/.style={column name=Prob.},
+	columns/VC8Prob/.style={column name=Prob.},
+	columns/VC9Prob/.style={column name=Prob.},
+	columns/VC10Prob/.style={column name=Prob.},
+	columns/VC11Prob/.style={column name=Prob.},
 	]{\tableOccSzRT}
-	\caption{RTs measured by changing $\mathcal{M}\times\mathcal{N}$ for five video clips.}
+	\caption{RT of the proposed algorithm measured in seconds by changing $\mathcal{M}\times\mathcal{N}$ for five video clips.}
 	\label{tb:exp:occ:RT}
-\end{table}
+\end{sidewaystable}
 
 \subsubsection{Size of queue}
-Adjusting the size of the queue $K$ determines how many object tubes are considered during each tube rearrangement step. The experiment is conducted as same manner as in \Cref{sec:exp:weight,sec:exp:occ}, while $K$ is changed from 10 to 100 with 10 interval. Other parameters are fixed to $\lambda=100$ and $\mathcal{M}\times\mathcal{N}=9\times16$, and the binary occupation matrix is used as a spatial approximation of the foreground pixels. Results of the experiments are presented in \Cref{fig:exp:queue,fig:exp:queue:RT}.
+\label{sec:exp:queue}
+Adjusting the size of the queue $K$ determines how many object tubes are considered during each tube rearrangement step. The experiment is conducted as same manner as in \Cref{sec:exp:weight,sec:exp:occ}, while $K$ is changed from 10 to 100 with 10 interval. Other parameters are fixed to $\lambda=100$ and $\mathcal{M}\times\mathcal{N}=9\times16$, and both binary and probabilistic occupation matrix are used as spatial approximations of the foreground pixels. Results of the experiments are presented in \Cref{fig:exp:queue,fig:exp:queue:RT}.
 
-According to the result in \Cref{fig:exp:queue}, as $K$ increases, FR is reduced by at least 20\% and CR is slightly increased, while OR remains almost unchanged. Therefore, regarding the three metrics, large $K$ is beneficial for the online video synopsis framework. However, since the proposed algorithm takes more time in optimization for larger $K$, we should find a proper $K$ to make a balance between RT and other metrics. Empirically, $K$ is set as 50 and used for subsequent experiments.
+For the binary occupation matrix, \Cref{fig:exp:queue} shows that, for increasing $K$, FR is decreased by at least 0.2 and CR is slightly increased, while OR remains almost unchanged. On the other hand, in general, the algorithm using the probabilistic matrix produces shorter synopsis videos with higher CR and OR. The key difference between the binary and occupation matrices is that the algorithm using the binary matrix produces synopsis videos having constant OR regardless of $K$. In other words, the resulting synopsis video never becomes more crowded even if $K$ is large.
+
+It is obvious that the algorithm takes more time to get rearranged labels for increasing $K$ as shown in \Cref{fig:exp:queue:RT}. Additionally, the computational advantage of the probabilistic matrix over the binary matrix is clearly seen in the result. As discussed many times throughout \Cref{sec:exp:param}, since the algorithm using the probabilistic matrix produces shorter synopsis videos than the one using the binary matrix, the number of frames to consider during the tube rearrangement stage becomes smaller. In consequence, slopes of \Cref{fig:exp:queue:RT:b} are less steeper than that of \Cref{fig:exp:queue:RT:a}.
+
+Similar to selecting $\lambda$, there is a trade-off between RT and other metrics for selecting $K$. Empirically, for both binary and probabilistic matrices, a median of the candidate values, 50, is used throughout the subsequent experiments.
 
 \pgfplotstableread[col sep=comma]{exp_bin_occ/crossroad03_size_of_queue.csv}\tableQueueOne
 \pgfplotstableread[col sep=comma]{exp_bin_occ/library02_size_of_queue.csv}\tableQueueTwo
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance02_size_of_queue.csv}\tableQueueThree
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance03_size_of_queue.csv}\tableQueueFour
 \pgfplotstableread[col sep=comma]{exp_bin_occ/subway_entrance04_size_of_queue.csv}\tableQueueFive
+
+\pgfplotstableread[col sep=comma]{exp_prob_occ/crossroad03_size_of_queue.csv}\tableProbQueueOne
+\pgfplotstableread[col sep=comma]{exp_prob_occ/library02_size_of_queue.csv}\tableProbQueueTwo
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance02_size_of_queue.csv}\tableProbQueueThree
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance03_size_of_queue.csv}\tableProbQueueFour
+\pgfplotstableread[col sep=comma]{exp_prob_occ/subway_entrance04_size_of_queue.csv}\tableProbQueueFive
 
 \begin{figure}
 	\centering
@@ -1032,11 +1219,17 @@ According to the result in \Cref{fig:exp:queue}, as $K$ increases, FR is reduced
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableQueueOne};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableQueueOne};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableQueueOne};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbQueueOne};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbQueueOne};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbQueueOne};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -1054,11 +1247,17 @@ According to the result in \Cref{fig:exp:queue}, as $K$ increases, FR is reduced
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableQueueTwo};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableQueueTwo};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableQueueTwo};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbQueueTwo};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbQueueTwo};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbQueueTwo};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -1081,11 +1280,17 @@ According to the result in \Cref{fig:exp:queue}, as $K$ increases, FR is reduced
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableQueueThree};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableQueueThree};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableQueueThree};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbQueueThree};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbQueueThree};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbQueueThree};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -1103,11 +1308,17 @@ According to the result in \Cref{fig:exp:queue}, as $K$ increases, FR is reduced
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableQueueFour};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableQueueFour};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableQueueFour};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbQueueFour};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbQueueFour};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbQueueFour};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
@@ -1128,87 +1339,300 @@ According to the result in \Cref{fig:exp:queue}, as $K$ increases, FR is reduced
 		]
 		
 		\addplot table [x expr=\coordindex, y=FR] {\tableQueueFive};
-		\addlegendentry{FR}
+		\addlegendentry{Bin-FR}
 		\addplot table [x expr=\coordindex, y=CR] {\tableQueueFive};
-		\addlegendentry{CR}
+		\addlegendentry{Bin-CR}
 		\addplot table [x expr=\coordindex, y=OR] {\tableQueueFive};
-		\addlegendentry{OR}
+		\addlegendentry{Bin-OR}
+		\addplot table [x expr=\coordindex, y=FR] {\tableProbQueueFive};
+		\addlegendentry{Prob-FR}
+		\addplot table [x expr=\coordindex, y=CR] {\tableProbQueueFive};
+		\addlegendentry{Prob-CR}
+		\addplot table [x expr=\coordindex, y=OR] {\tableProbQueueFive};
+		\addlegendentry{Prob-OR}
 		
 		\end{axis}
 		\end{tikzpicture}
 	}
 	\caption{(continued) Result of the experiment conducted by changing $K$.}
 \end{figure}
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[Binary occupation matrix]
+	{
+		\label{fig:exp:queue:RT:a}
+		\begin{tikzpicture}[scale = 1.0]
+		\begin{axis}[
+		title = {Running time},
+		xlabel = {$K$},
+		ylabel = {Seconds},
+		ymax = 13,
+		xtick = data,
+		xticklabels from table = {\tableQueueOne}{Domain},
+		legend pos = outer north east,
+		grid = major,
+		]
+		
+		\addplot table [x expr=\coordindex, y=RT] {\tableQueueOne};
+		\addplot table [x expr=\coordindex, y=RT] {\tableQueueTwo};
+		\addplot table [x expr=\coordindex, y=RT] {\tableQueueThree};
+		\addplot table [x expr=\coordindex, y=RT] {\tableQueueFour};
+		\addplot table [x expr=\coordindex, y=RT] {\tableQueueFive};
+		
+		\end{axis}
+		\end{tikzpicture}
+	}
+	\subfloat[Probabilistic occupation matrix]
+	{
+		\label{fig:exp:queue:RT:b}
+		\begin{tikzpicture}[scale = 1.0]
+		\begin{axis}[
+		title = {Running time},
+		xlabel = {$K$},
+		ymax = 13,
+		xtick = data,
+		xticklabels from table = {\tableQueueOne}{Domain},
+		legend pos = outer north east,
+		grid = major,
+		]
+		
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbQueueOne};
+		\addlegendentry{VC7}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbQueueTwo};
+		\addlegendentry{VC8}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbQueueThree};
+		\addlegendentry{VC9}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbQueueFour};
+		\addlegendentry{VC10}
+		\addplot table [x expr=\coordindex, y=RT] {\tableProbQueueFive};
+		\addlegendentry{VC11}
+		
+		\end{axis}
+		\end{tikzpicture}
+	}
+	\caption{RT of the proposed algorithm measured by changing $K$ for five sequences.}
+	\label{fig:exp:queue:RT}
+\end{sidewaysfigure}
+
+\subsubsection{Type of occupation matrix}
+Based on the observations so far, with same parameters, the binary occupation matrix has a benefit for OR over the probabilistic occupation matrix, which means that the resulting synopsis video is less crowded and the objects in the video can be easily distinguished from each other. On the other hand, the algorithm using the probabilistic matrix outperforms the one utilizing the binary matrix for every performance metric except OR. Therefore it produces more crowded but compact synopsis video than the binary equivalent.
+
+In conclusion, using the probabilistic occupation matrix is beneficial for the most of situations. If the user wants a less crowded condensed video, using the binary occupation matrix can be an option. However, instead of changing the type of the occupation matrix, adjusting $\lambda$ is more simple and desirable solution.
+
+\subsection{Ablation study for speed up techniques}
+\label{sec:exp:parallel}
+In this section, ablation study for the two speed up techniques used in the proposed algorithm is conducted: FFT and parallel processing. Total four versions of the algorithm are compared regarding RT as summarized in \Cref{tb:ablation}. The baseline of the algorithm denoted as Occ utilizes the occupation matrix and the cross-correlation of the signals in time domain to calculate collisions between the objects. For all versions of the algorithm, the probabilistic occupation matrix of $9\times16$ resolution is utilized and other parameters are fixed as $\lambda=100$ and $K=50$. As similar to \Cref{sec:exp:param}, five video sequences from VC7 to VC11 are utilized for the evaluation.
+
+\begin{table}
+	\centering
+	\begin{tabular}{ccc}
+		\hline\hline
+		Symbol & FFT & Parallel processing \\
+		\hline\hline
+		Occ & - & - \\
+		Occ+F & \checkmark & - \\
+		Occ+P & - & \checkmark \\
+		Occ+FP & \checkmark & \checkmark \\
+		\hline
+	\end{tabular}
+	\caption{Four versions of the proposed algorithm used for ablation study.}
+	\label{tb:ablation}
+\end{table}
+\pgfplotstableread[col sep=comma]{ablation_study.csv}\tableAblation
+\pgfplotstabletranspose*[colnames from=Domain, input colnames to=Domain, columns={Domain,Occ,Occ+F,Occ+P,Occ+FP}]{\tableTransAblation}{\tableAblation}
 \begin{figure}
 	\centering
-	\begin{tikzpicture}[scale = 1.0]
+	\begin{tikzpicture}[scale = 1.2]
 	\begin{axis}[
-	title = {Running time},
-	xlabel = {$K$},
 	ylabel = {Seconds},
+	ymax = 165,
+	ymajorgrids,
+	ybar,
+	enlargelimits = 0.15,
+	bar width = 6pt,
 	xtick = data,
-	xticklabels from table = {\tableQueueOne}{Domain},
-	legend pos = outer north east,
-	grid = major,
+	xticklabels from table = {\tableTransAblation}{Domain},
+	legend style = {at = {(0.5,-0.15)}, anchor=north, legend columns=-1},
+	nodes near coords,
+	every node near coord/.append style = {font=\tiny, rotate=90, anchor=west},
 	]
 	
-	\addplot table [x expr=\coordindex, y=RT] {\tableQueueOne};
-	\addlegendentry{Crossroad III}
-	\addplot table [x expr=\coordindex, y=RT] {\tableQueueTwo};
-	\addlegendentry{Library lobby II}
-	\addplot table [x expr=\coordindex, y=RT] {\tableQueueThree};
-	\addlegendentry{Subway station plaza II}
-	\addplot table [x expr=\coordindex, y=RT] {\tableQueueFour};
-	\addlegendentry{Subway station plaza III}
-	\addplot table [x expr=\coordindex, y=RT] {\tableQueueFive};
-	\addlegendentry{Subway station plaza IV}
+	\addplot table [x expr=\coordindex, y=VC7] {\tableTransAblation};
+	\addlegendentry{VC7}
+	\addplot table [x expr=\coordindex, y=VC8] {\tableTransAblation};
+	\addlegendentry{VC8}
+	\addplot table [x expr=\coordindex, y=VC9] {\tableTransAblation};
+	\addlegendentry{VC9}
+	\addplot table [x expr=\coordindex, y=VC10] {\tableTransAblation};
+	\addlegendentry{VC10}
+	\addplot table [x expr=\coordindex, y=VC11] {\tableTransAblation};
+	\addlegendentry{VC11}
 	
 	\end{axis}
 	\end{tikzpicture}
-	\caption{RTs measured by changing $K$ for five sequences.}
-	\label{fig:exp:queue:RT}
+	\caption{Result of the ablation study to compare four different versions of the proposed algorithm.}
+	\label{fig:exp:ablation}
 \end{figure}
 
-\subsubsection{Type of occupation matrix}
+According to the result in \Cref{fig:exp:ablation}, FFT reduces the computational burden of the proposed algorithm by at least 1/20. On the other hand, applying parallel computing to the algorithm increases its computation speed by 5 times in average. Utilizing both speed up techniques (Occ+FP) produces the best result in RT; however, the performance gain from Occ+F to Occ+FP is less drastic than the one from Occ to Occ+P; the proposed algorithm with Occ+FP only produces approximately 2.5 faster results than the non-parallelized version.
 
+\subsection{Performance comparisons}
+\label{sec:exp:comparison}
+To compare the performance of the proposed algorithm with others, three recently introduced online tube rearrangement algorithms~\cite{Fu2014,JianqingZhu2015,He2017} are reproduced by using C/C++ languages. For fair comparisons, the existing algorithms utilize the same values of the required parameters as described in the original papers. The values of the parameters required for the proposed algorithm are summarized as follows: $\lambda=100$, $\mathcal{M}\times\mathcal{N}=9\times16$, $K=50$, and the probabilistic occupation matrix. Except for the Tetris like optimization~\cite{JianqingZhu2015} which utilizes its own online tube filling strategy, all algorithms run on the same online video synopsis framework which maintains a fixed sized queue of $K$ for containing moving objects. Note that existing algorithms have not employed any spatial subsampling.
 
-\subsection{Efficiency of parallelization}
-To show the efficiency of our proposed parallelization scheme, parallelized and non-parallelized versions of the proposed algorithm are compared in terms of RT. A result of the comparison is illustrated in \Cref{fig:RT}. According to the results, the parallelized version is approximately 2.5 times faster than the non-parallelized version. Because the current parallelized version is based on CPU multi-threading, the proposed algorithm can be further efficiently computed with GPU-based parallelization.
+Regarding RT, as shown in \Cref{fig:exp:RT}, the proposed algorithm outperforms other algorithms with a large margin. Since the algorithm of Fu~\etal~\cite{Fu2014} tries to group object tubes possible to have interactions and put them into the same portion of the condensed video, it takes much more time in computing rearranged labels even though it has benefits from the online framework. For other two algorithms, we can see that the key concepts of the optimization (greedy search~\cite{JianqingZhu2015} and PCG~\cite{He2017}) definitely contributes to the performance, but their difference is not significant. 
 
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=0.9\linewidth]{RT.eps}
-\end{center}
-   \caption{Running times of the different tube rearrangement algorithms for six test sequences. An asterisk (*) indicates the parallelized version of the proposed algorithm.}
-\label{fig:RT}
+According to \Cref{fig:exp:FR}, average FR for each algorithm can be listed as 0.0951, 0.0853, 0.0686, and 0.102 in order; therefore, the best performance is achieved by the algorithm of Zhu~\etal~\cite{JianqingZhu2015}. On the other hand, performances of other three algorithms are not remarkably different. Note that even though the proposed algorithm utilizes the spatial approximation of the foreground, its FR is comparable to other algorithms.
+
+For CR, as we can see in \Cref{fig:exp:CR}, Zhu~\etal~\cite{JianqingZhu2015} performs the best. This result can be expected, because FR and CR have a weak positive correlation; the algorithm with better FR are more likely to have better CR as well. However, the proposed algorithm achieves the second best performance in average, even though it has been ranked at the 3rd place for FR.
+
+Typically, FR and OR have a weak negative correlation, because higher FR means that the spatio-temporal domain of the condensed video is smaller than the one with lower FR; in consequence, the objects are more likely to have collisions between them. However, the performance ranking for OR is very different from that for FR. According to \Cref{fig:exp:OR}, the list of average OR for each algorithm is 0.1467, 0.285, 0.2017, and 0.21 in order. The proposed algorithm has been ranked at the 1st position and the Tetris like optimization~\cite{JianqingZhu2015} follows it. The algorithm of Fu~\etal~\cite{Fu2014} takes the 3rd position and the PCG baesd algorithm~\cite{He2017} performs the worst.
+
+Except for the algorithm considering the structured motion~\cite{Fu2014}, the objective of other three algorithms is focused on improving the computation speed of the online video synopsis framework. Thanks to the concepts they are using, all of the algorithms can rearrange starting labels within 10 seconds at maximum for the test sequences. However, the algorithms have their own distinctive characteristics. For the Tetris like optimization~\cite{JianqingZhu2015}, it definitely has benefits for both FR and CR, which means that it can generate the shorter condensed video and can utilize the target spatio-temporal domain efficiently. For the algorithm of He~\etal~\cite{He2017}, the concept of PCG takes an advantage in RT and FR, where it achieves the 2nd best performance for both metrics. However, as compared to FR, its CR and OR are less than expected, which indicates that it produces suboptimal solutions for the rearrangement task. On the other hand, thanks to the occupation matrix with two speed up techniques (Fourier transform and parallel processing), the proposed algorithm is outmatched other algorithms regarding RT and OR. This indicates that the user can get the visually untangled synopsis video with a low latency through the proposed online video synopsis framework.
+
+\pgfplotstableread[col sep=comma]{exp_comp/complex.csv}\tableVCOne
+\pgfplotstableread[col sep=comma]{exp_comp/crossroad01.csv}\tableVCTwo
+\pgfplotstableread[col sep=comma]{exp_comp/crossroad02.csv}\tableVCThree
+\pgfplotstableread[col sep=comma]{exp_comp/library01.csv}\tableVCFour
+\pgfplotstableread[col sep=comma]{exp_comp/parking_lot.csv}\tableVCFive
+\pgfplotstableread[col sep=comma]{exp_comp/subway_entrance01.csv}\tableVCSix
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale = 1]
+	\begin{axis}[
+	ylabel = {Seconds},
+	ymajorgrids,
+	ybar,
+	enlargelimits = 0.15,
+	bar width = 5pt,
+	xtick = data,
+	xticklabels from table = {\tableVCOne}{Domain},
+	legend style = {at = {(0.5,-0.15)}, anchor=north, legend columns=-1},
+	nodes near coords,
+	every node near coord/.append style = {font=\tiny, rotate=90, anchor=west},
+	]
+	
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCOne};
+	\addlegendentry{VC1}
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCTwo};
+	\addlegendentry{VC2}
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCThree};
+	\addlegendentry{VC3}
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCFour};
+	\addlegendentry{VC4}
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCFive};
+	\addlegendentry{VC5}
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCSix};
+	\addlegendentry{VC6}
+	
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Result of the experiment regarding RT measured in seconds.}
+	\label{fig:exp:RT}
 \end{figure}
-
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=0.9\linewidth]{FCR.eps}
-\end{center}
-   \caption{Frame condensation ratios of different tube rearrangement algorithms for six test sequences.}
-\label{fig:FCR}
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale = 1]
+	\begin{axis}[
+	ylabel = {FR},
+	ymajorgrids,
+	ybar,
+	enlargelimits = 0.15,
+	bar width = 5pt,
+	xtick = data,
+	xticklabels from table = {\tableVCOne}{Domain},
+	legend style = {at = {(0.5,-0.15)}, anchor=north, legend columns=-1},
+	nodes near coords,
+	every node near coord/.append style = {font=\tiny, rotate=90, anchor=west},
+	]
+	
+	\addplot table [x expr=\coordindex, y=FR] {\tableVCOne};
+	\addlegendentry{VC1}
+	\addplot table [x expr=\coordindex, y=FR] {\tableVCTwo};
+	\addlegendentry{VC2}
+	\addplot table [x expr=\coordindex, y=FR] {\tableVCThree};
+	\addlegendentry{VC3}
+	\addplot table [x expr=\coordindex, y=FR] {\tableVCFour};
+	\addlegendentry{VC4}
+	\addplot table [x expr=\coordindex, y=FR] {\tableVCFive};
+	\addlegendentry{VC5}
+	\addplot table [x expr=\coordindex, y=FR] {\tableVCSix};
+	\addlegendentry{VC6}
+	
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Result of the experiment regarding FR.}
+	\label{fig:exp:FR}
 \end{figure}
-
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=0.9\linewidth]{CR.eps}
-\end{center}
-   \caption{Compact ratios of the different tube rearrangement algorithms for six test sequences.}
-\label{fig:CR}
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale = 1]
+	\begin{axis}[
+	ylabel = {CR},
+	ymajorgrids,
+	ybar,
+	enlargelimits = 0.15,
+	bar width = 5pt,
+	xtick = data,
+	xticklabels from table = {\tableVCOne}{Domain},
+	legend style = {at = {(0.5,-0.15)}, anchor=north, legend columns=-1},
+	nodes near coords,
+	every node near coord/.append style = {font=\tiny, rotate=90, anchor=west},
+	]
+	
+	\addplot table [x expr=\coordindex, y=CR] {\tableVCOne};
+	\addlegendentry{VC1}
+	\addplot table [x expr=\coordindex, y=CR] {\tableVCTwo};
+	\addlegendentry{VC2}
+	\addplot table [x expr=\coordindex, y=CR] {\tableVCThree};
+	\addlegendentry{VC3}
+	\addplot table [x expr=\coordindex, y=CR] {\tableVCFour};
+	\addlegendentry{VC4}
+	\addplot table [x expr=\coordindex, y=CR] {\tableVCFive};
+	\addlegendentry{VC5}
+	\addplot table [x expr=\coordindex, y=CR] {\tableVCSix};
+	\addlegendentry{VC6}
+	
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Result of the experiment regarding CR.}
+	\label{fig:exp:CR}
 \end{figure}
-
-\begin{figure}[t]
-\begin{center}
-\includegraphics[width=0.9\linewidth]{OR.eps}
-\end{center}
-   \caption{Overlap ratios of the different tube rearrangement algorithms for six test sequences.}
-\label{fig:OR}
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale = 1]
+	\begin{axis}[
+	ylabel = {OR},
+	ymajorgrids,
+	ybar,
+	enlargelimits = 0.15,
+	bar width = 5pt,
+	xtick = data,
+	xticklabels from table = {\tableVCOne}{Domain},
+	legend style = {at = {(0.5,-0.15)}, anchor=north, legend columns=-1},
+	nodes near coords,
+	every node near coord/.append style = {font=\tiny, rotate=90, anchor=west},
+	]
+	
+	\addplot table [x expr=\coordindex, y=OR] {\tableVCOne};
+	\addlegendentry{VC1}
+	\addplot table [x expr=\coordindex, y=OR] {\tableVCTwo};
+	\addlegendentry{VC2}
+	\addplot table [x expr=\coordindex, y=OR] {\tableVCThree};
+	\addlegendentry{VC3}
+	\addplot table [x expr=\coordindex, y=OR] {\tableVCFour};
+	\addlegendentry{VC4}
+	\addplot table [x expr=\coordindex, y=OR] {\tableVCFive};
+	\addlegendentry{VC5}
+	\addplot table [x expr=\coordindex, y=OR] {\tableVCSix};
+	\addlegendentry{VC6}
+	
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Result of the experiment regarding OR.}
+	\label{fig:exp:OR}
 \end{figure}
-
-\subsection{Comparisons of different online tube rearrangement algorithms}
-We have reproduced three recently introduced online tube rearrangement algorithms~\cite{Fu2014,JianqingZhu2015,He2017} to compare and analyze the performance of the proposed algorithm. For fair comparisons, the required parameters of existing algorithms are set the same as in the original papers. Note that existing algorithms have not employed any spatial subsampling. Results of the comparisons are illustrated in~\Cref{fig:RT,fig:FCR,fig:CR,fig:OR}. For FR, the proposed algorithm achieved the second-best performance in overall. For CR, the algorithm of Zhu~\etal~\cite{JianqingZhu2015} performed the best, while the others do not show significant differences. On the other hand, regarding RT and OR, the proposed algorithm outperformed other algorithms by a wide margin. Especially for RT, even a non-parallelized version has an advantage over existing algorithms. The experiments show that the proposed algorithm can efficiently handle occlusions far better than existing ones, even with a large number of objects.
 
 \chapter{Conclusion}
 \label{sec:conc}
@@ -1219,4 +1643,3 @@ This letter proposes the parallelized tube rearrangement algorithm for online vi
 \addcontentsline{toc}{chapter}{\textbf{BIBLIOGRAPHY}}
 
 \end{document}
-
