@@ -22,6 +22,7 @@
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage{booktabs}
+\usepackage{verbatim}
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
