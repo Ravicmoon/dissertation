@@ -33,8 +33,7 @@
 \newcommand{\mediumfont}{\fontsize{13}{\baselineskip}\selectfont}
 
 \usepackage{titlesec}
-\titleformat{\chapter}
-{\bf\largefont}{\thechapter}{1em}{}
+\titleformat{\chapter}{\bf\largefont}{\thechapter}{1em}{}
 \titleformat*{\section}{\titlelabel{\thesection\space}\bf\mediumfont}
 \titleformat*{\subsection}{\titlelabel{\thesubsection\space}\bf\mediumfont}
 \titleformat*{\subsubsection}{\titlelabel{\thesubsubsection\space}\bf\mediumfont}
