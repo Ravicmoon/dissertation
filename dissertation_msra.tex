@@ -206,7 +206,7 @@ At first, $E_a$ defines which object tubes should be appeared in the condensed v
 \label{eq:activity}
 E_a(l_i) =
 \begin{cases}
-\sum_{x,y,t} \chi_i (x,y,t) & l_i \in L_e \\
+\sum_{x,y,t} {\chi_i (x,y,t)}^2 & l_i \in L_e \\
 0 & \rm{otherwise},
 \end{cases}
 \end{equation}
@@ -230,7 +230,7 @@ Before moving on to the next energy term, how to generate time-lapse background 
 The role of the second energy term in (\ref{eq:basic_form}), $E_s$, is to seamlessly render the object tubes with the time-lapse background images. In the video synopsis framework, foreground pixels of the object tubes are stitched with the background images to generate the condensed video. During the stitching process, image blending algorithms (e.g., Poisson image editing~\cite{Perez2003}) can be used to smoothly blend the foreground and background pixels. However, inaccurate segmentation results of the foreground or foreground and background pixels from different time of day can cause visually unappealing results as shown in \ref{}. $E_s$ is defined to penalize such situation.
 \begin{equation}
 \label{eq:bg_consistency}
-E_s(l_i)=\sum_{x,y \in \sigma_i,t}\norm{I_i(x,y,t)-B_t(x,y,t)},
+E_s(l_i)=\sum_{x,y \in \sigma_i,t}\norm{I_i(x,y,t)-B_t(x,y,t)}^2,
 \end{equation}
 where $\sigma_i$ is a set of boundary pixels for the $i^{\rm{th}}$ object and $B_t(x,y,t)$ is a pixel of the time-lapse background. To obtain $\sigma_i$, we can apply morphological dilation to the foreground mask of the $i^{\rm{th}}$ object and subtract it from the original. Based on (\ref{eq:bg_consistency}), the object appeared in the midnight are more likely to be appeared at night-part of the time-lapse background.
 
@@ -1733,7 +1733,7 @@ Except for the algorithm considering the structured motion~\cite{Fu2014}, the ob
 
 \chapter{Conclusion}
 \label{sec:conc}
-In this dissertation, the concurrent probabilistic tube rearrangement algorithm for online video synopsis is proposed. To reduce the burden of calculating the collision energy, the occupation matrix, spatial approximation of foreground pixels, is introduced to define the new energy term. The new collision energy is defined as element-wise multiplications of occupation matrices. This energy can be efficiently computed by using FFT and parallel processing. According to the ablation study, both speed up techniques decrease running time of the proposed algorithm by approximately 1/60. In addition, the extensive parameter analysis has been conducted to choose optimum parameters required for the proposed algorithm. For the comparative experiments, the proposed algorithm optimizes starting labels of the objects at least 5 times faster than states-of-art online tube rearrangement algorithms. Moreover, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others. The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework.
+In this dissertation, the concurrent probabilistic tube rearrangement algorithm for online video synopsis is proposed. To reduce the burden of calculating the collision energy, the occupation matrix, spatial approximation of foreground pixels, is introduced to define the new energy term. The new collision energy is defined as element-wise multiplications of occupation matrices. This energy can be efficiently computed by using FFT and parallel processing. According to the ablation study, both speed up techniques decrease running time of the proposed algorithm by approximately 1/60. In addition, the extensive parameter analysis has been conducted to choose optimum parameters required for the proposed algorithm. For the comparative experiments, the proposed algorithm optimizes starting labels of the objects within 1.3 seconds for all test sequences. This is at least 1/6 faster results than states-of-art online tube rearrangement algorithms. Moreover, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others. The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework.
 
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,video_synopsis}
