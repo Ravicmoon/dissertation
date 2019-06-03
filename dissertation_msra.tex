@@ -73,9 +73,9 @@
 \addcontentsline{toc}{chapter}{\textbf{ABSTRACT}}
 Video synopsis allows us to analyze security videos efficiently by condensing or shortening a long video into a short one. To generate a condensed video, moving objects are extracted in the form of object tubes. Then, these tubes are rearranged in the temporal domain using a predefined objective function. It consists of several energy terms which play important roles in making a visually appealing condensed video. Among them, collision energy creates a bottleneck in the computation because it requires two object tubes as input arguments. Existing approaches try to reduce the computation time of the collision energy calculation by reducing the number of tubes processed at once. However, those approaches are not sufficient to generate condensed video when the number of object tubes becomes large.
 
-This dissertation presents a concurrent probabilistic tube rearrangement algorithm with fast Fourier transform (FFT) targeted for online video synopsis. Instead of representing locations of object tubes as bounding boxes, the proposed algorithm utilizes the occupation matrices, foreground masks having low resolution. Then, the collision energy can be computed by series of element-wise multiplications between the occupation matrices. In addition, this process can be accelerated by utilizing FFT and parallel processing.
+This dissertation presents a concurrent probabilistic tube rearrangement algorithm targeted for online video synopsis. The proposed algorithm reduces the computational complexity of the collision energy calculation itself by using fast Fourier transform (FFT). For the first step of the computational complexity reduction, occupation matrices, foreground masks having low resolution, have been introduced to represent locations of the object tubes. Then, collision energy can be computed as a series of element-wise multiplications between the occupation matrices. This process is accelerated by using FFT and parallel processing.
 
-To evaluate and analyze the performance of the proposed algorithm, total 10 hours long videos are captured at four different places of Hanyang University, Seoul Korea. For all the test sequences, the proposed algorithm can produce condensed videos within 0.75 seconds in average, and it is at least 6 times faster results than the existing algorithms. Moreover, resulting synopsis videos of the proposed algorithm have less collisions than its competitors. For better understanding of the proposed algorithm, effectiveness of two speed up techniques has been analyzed through the ablation study, and parameter analysis of the proposed algorithm has been conducted extensively.
+To evaluate and analyze the performance of the proposed algorithm, total 10 hours long videos are captured at four different places of Hanyang University, Seoul Korea. For all the test sequences, the proposed algorithm can produce condensed videos within 0.75 seconds in average, and it is at least 1/6 faster results than the existing algorithms. Moreover, resulting synopsis videos of the proposed algorithm have less collisions than its competitors. For better understanding of the proposed algorithm, effectiveness of two speed up techniques has been analyzed through the ablation study, and parameter analysis of the proposed algorithm has been conducted extensively.
 \newpage
 
 \chapter{Introduction}
@@ -92,10 +92,11 @@ In order to cope with the problem, Pritch~\etal~\cite{Pritch2009} suggest
 a clustering based optimization algorithm. It divides object tubes into several subsets; then, the optimization algorithm is conducted on each subset. Since the number of object tubes belonging to each subset is much smaller than $K$, execution time of the optimization algorithm is greatly reduced. However, its condensation result depends on the performance of the clustering algorithm which has a chance to
 generate inappropriate clusters.
 
-An alternative approach to tube rearrangement is an online video synopsis~\cite{Huang2014,Feng2012,Zhu2015,He2017,Fu2014}, which solves a stepwise optimization problem. In stepwise optimization, instead of considering entire object tubes at the same time, the starting labels of the object tubes are determined one by one. Therefore, it requires less computational power and memory space than batch or offline video synopsis. In addition, since online video synopsis optimizes the object tubes in chronological order, it is inessential to consider temporal and background consistencies. Therefore, the most of online video synopsis frameworks mainly consider the collision energy during the optimization.
+An alternative approach to tube rearrangement is an online video synopsis~\cite{Huang2014,Feng2012,Zhu2015,He2017,Fu2014}, which solves a stepwise optimization problem. In stepwise optimization, instead of considering entire object tubes at the same time, the starting labels of the object tubes are determined one by one. Therefore, it requires less computational power and memory space than batch or offline video synopsis. In addition, since online video synopsis optimizes the object tubes in chronological order, it is not necessary to consider temporal and background consistencies. Therefore, the most of online video synopsis frameworks mainly consider the collision energy during the optimization.
 
 Based on such advantages, recent studies of online video synopsis focused on finding efficient ways of solving a stepwise optimization problem: for example, the maximum a posteriori estimation~\cite{Huang2014}, a Tetris-like tube rearrangement strategy~\cite{Feng2012,Zhu2015}, and a potential collision graph~\cite{He2017}. 
-Even though these existing algorithms have their own virtue, they have lack of considerations of multi-core environment, which means that there are still rooms for improvements.
+Even though these existing algorithms have their own virtue, 
+they have lack of considerations of multi-core environment, which means that there are still rooms for improvements.
 
 In this dissertation, the tube rearrangement problem is reformulated as a suitable form for parallel processing, and the novel concurrent optimization algorithm based on 1D convolutions is proposed to accelerate the optimization process. As in other online tube rearrangement algorithms~\cite{Huang2014,Feng2012,Zhu2015,He2017,Fu2014}, the collision energy is primarily considered during the tube rearrangement. As a preprocessing step, the proposed algorithm reshapes object tubes into probabilistic occupation matrices of $\mathcal{M} \times \mathcal{N} \times \mathcal{T}$ dimension, where $\mathcal{M}$ and $\mathcal{N}$ represent the spatial domain, and $\mathcal{T}$ represents the time domain. This occupation matrix becomes a fundamental building block of the proposed algorithm. Then, the collision energy between two object tubes can be computed as element-wise multiplications of two occupation matrices. This process can be accelerated by utilizing fast Fourier transform (FFT)~\cite{Oppenheim2009} in conjunction with parallel computing; therefore, the proposed algorithm can effectively determine the starting labels of numerous object tubes in very short amount of time.
 
@@ -211,7 +212,7 @@ At first, $E_a$ defines which object tubes should be appeared in the condensed v
 \label{eq:activity}
 E_a(l_i) =
 \begin{cases}
-\sum_{x,y,t} {\chi_i (x,y,t)}^2 & l_i \in L_e \\
+\sum_{x,y,t} {\chi_i (x,y,t)} & l_i \in L_e \\
 0 & \rm{otherwise},
 \end{cases}
 \end{equation}
@@ -220,7 +221,7 @@ where $l_i$ and $\chi_i (x,y,t)$ are the starting label and the characteristic f
 \label{eq:char_func}
 \chi_i(x,y,t)=
 \begin{cases}
-\norm{I_i(x,y,t)-B(x,y,t)} & t \in t_i\\
+\norm{I_i(x,y,t)-B(x,y,t)}^2 & t \in t_i\\
 0 & \rm{otherwise},
 \end{cases}
 \end{equation}
@@ -666,7 +667,7 @@ As shown in \Cref{fig:framework}, online video synopsis generates a small portio
 \section{Performance metrics}
 In this chapter, the performance of the proposed tube rearrangement algorithm is evaluated by using four metrics: frame condensation ratio (FR), compact ratio (CR), overlap ratio (OR), and running time (RT). The detail of each performance metric is presented as follows.
 
-FR is defined as a ratio of the condensed video length to the original video.
+FR is defined as a ratio of the condensed video length to the original video length.
 \begin{equation}
 \textrm{FR} = \frac{\mathcal{T}^{*}}{\mathcal{T}},
 \end{equation}
@@ -693,18 +694,18 @@ OR is proportional to the number of overlapped foreground pixels in the condense
 \end{equation}
 where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending foreground pixels of two or more objects with $B_t(x,y,t)$; otherwise, it produces 0. If OR is small, we can easily distinguish rearranged objects in the synopsis video; therefore, we can understand the summarized information better.
 
-The last but not least RT is a metric to compare computational complexity of the algorithm and measured in seconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core 4.0 GHz computer with 32 GB of memory. 
+The last but not least RT is a metric to compare computational complexity of the algorithm and measured in seconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core i7-5700K 4.0 GHz computer with 32 GB of memory. 
 
 \section{Test video sequences}
 For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_perf}. Some examples of the test sequences are depicted in \Cref{fig:examples}.
 
-Parking lot square I sequence mainly focuses on the entrance of the parking lot but there is a sidewalk with red bricks on the left. Since this place is a main road to most of buildings in Hanyang university, the scene is very crowded with people. The scene of Parking lot square II is similar to that of Parking lot square I, but the most of moving objects are vehicle not pedestrian.
+Parking lot square I sequence mainly focuses on the entrance of the parking lot but there is a sidewalk with red bricks on the left. Since this place is a main road to the most of buildings in Hanyang university, the scene is very crowded with people. The scene of Parking lot square II is similar to that of Parking lot square I, but the most of moving objects are vehicles not pedestrians.
 
-Crossroad I and II sequences are captured at the same place with different seasons and camera's zoom parameter. Crossroad I is captured at summer with more zoom, while Crossroad II is captured at fall with less zoom. Most of people appeared in this scene walk in either left or right directions.
+Crossroad I and II sequences are captured at the same place with different seasons and camera's zoom parameters. Crossroad I is captured at summer with more zoom, while Crossroad II is captured at fall with less zoom. Most of people appeared in this scene walk in either left or right directions.
 
 Library lobby sequence is captured by the indoor security camera mounted on 2nd floor of the building. There is a gateway of the library at top of the scene and stairs (not visible in the scene) are located at left and right side of the building; therefore, people move from either left or right to the top, or vice versa.
 
-Subway station plaza is an open place in front of the subway station entrance. Since there are many ways to get to the building from here, there is no dominant walking direction of people.
+Subway station plaza is an open place in front of the subway station entrance. Since there are many ways to get to the buildings from here, there is no dominant walking direction of people.
 
 \begin{figure}
 	\centering
@@ -756,11 +757,11 @@ Subway station plaza is an open place in front of the subway station entrance. S
 \end{table}
 
 \section{Performance analysis}
-The experiments in this section are designed to 1) find optimum parameters for the proposed tube rearrangement algorithm, 2) conduct an ablation study for two speed up techniques, and 3) compare performances of several different online tube rearrangement algorithms.
+The experiments in this section are designed to 1) analyze parameters required for the proposed tube rearrangement algorithm, 2) conduct an ablation study for two speed up techniques, and 3) compare performances of several different online tube rearrangement algorithms.
 
-\subsection{Optimum parameters}
+\subsection{Parameter analysis}
 \label{sec:exp:param}
-There are four necessary parameters for the proposed tube rearrangement algorithm: the weight parameter of the length energy $\lambda$, the size of the occupation matrix $\mathcal{M}\times\mathcal{N}$, the type of the occupation matrix, and the size of the queue $K$. Apart from six test sequences used for the performance evaluation, additional five video clips are prepared to find optimum parameters and detail characteristics of the videos are summarized in Table~\ref{tb:video_param}.
+There are four necessary parameters for the proposed tube rearrangement algorithm: the weight parameter of the length energy $\lambda$, the size of the occupation matrix $\mathcal{M}\times\mathcal{N}$, the type of the occupation matrix, and the size of the queue $K$. Apart from six test sequences used for the performance evaluation, additional five video clips are prepared to find appropriate values of parameters and detail characteristics of the videos are summarized in Table~\ref{tb:video_param}.
 \begin{table}
 	\begin{center}
 		\begin{tabular}{clccc}
@@ -781,7 +782,7 @@ There are four necessary parameters for the proposed tube rearrangement algorith
 			\hline
 		\end{tabular}
 	\end{center}
-	\caption{List of sequences used to find optimum parameters of the proposed tube rearrangement algorithm.}
+	\caption{List of sequences used to select appropriate values of the parameters required for the proposed tube rearrangement algorithm.}
 	\label{tb:video_param}
 \end{table}
 
@@ -789,11 +790,11 @@ There are four necessary parameters for the proposed tube rearrangement algorith
 \label{sec:exp:weight}
 First experiment measures the four performance metrics by changing $\lambda$ from 1 to 5000. Remaining parameters are fixed as $\mathcal{M}\times\mathcal{N}=9\times16$, $K=20$, and the algorithm produces results for both binary and probabilistic occupation matrices. Except for RT, other three metrics have similar scales; hence, FR, CR and OR are depicted together in \Cref{fig:exp:lambda}. On the other hand, RT for five sequences are grouped and summarized in \Cref{fig:exp:lambda:RT}. 
 
-As expected, FR decreases when the proposed algorithm pays more attention to the length energy (increasing $\lambda$). On the other hand, CR and OR do not change as much as FR. As shown in \Cref{fig:exp:lambda:RT}, we can see that RT is proportional to the number of object tubes in the original video, and tends to decrease as $\lambda$ increases. This result is quite obvious, because small number of object tubes and less frames to consider reduce the computational burden.
+As expected, FR decreases when the proposed algorithm pays more attention to the length energy (increasing $\lambda$). On the other hand, CR and OR do not change as much as FR does. As shown in \Cref{fig:exp:lambda:RT}, we can see that RT is proportional to the number of object tubes in the original video, and tends to decrease as $\lambda$ increases. This result is quite obvious, because small number of object tubes and less frames to consider reduce the computational burden.
 
-One interesting result is shown in \Cref{fig:exp:lambda:b}, where FR is larger than 1 for $\lambda \in \{1, 10, 50\}$ with binary occupation matrix and $\lambda=1$ with probabilistic occupation matrix. This result is induced by two factors: small $\lambda$ and large number of object tubes having similar paths. When $\lambda$ is small, the proposed algorithm focuses on reducing collisions rather than making a short length video. In addition, when large number of objects share the common path in the scene, it is hard to avoid collisions between the objects moving along the path. One straightforward solution for the rearrangement problem under these conditions is minimizing the overlapped time region between the objects. In other words, the algorithm rearranges object tubes like linked sausages and the resulting video may have a longer length than the original one. To avoid such undesirable solution, selecting sufficiently large $\lambda$ is important for the proposed algorithm. However, when $\lambda$ exceeds some value, four metrics become saturated, which means that the algorithm primarily considers the length energy. This solution is not desirable neither; therefore, we need to choose a balanced value of $\lambda$.
+One interesting result is shown in \Cref{fig:exp:lambda:b}, where FR is larger than 1 for $\lambda \in \{1, 10, 50\}$ with binary occupation matrix and $\lambda=1$ with probabilistic occupation matrix. This result is induced by two factors: small $\lambda$ and large number of object tubes having similar paths. When $\lambda$ is small, the proposed algorithm focuses on reducing collisions rather than making a short length video. In addition, when large number of objects share the common path in the scene, it is hard to avoid collisions between the objects moving along the path. One trivial solution for the rearrangement problem under these conditions is minimizing the overlapped time region between the objects. In other words, the algorithm rearranges object tubes like linked sausages and the resulting video may have a longer length than the original one. To avoid such undesirable solution, selecting sufficiently large $\lambda$ is important for the proposed algorithm. However, when $\lambda$ exceeds some value, four metrics become saturated, which means that the algorithm primarily considers the length energy. This solution is not desirable neither; therefore, we need to choose a balanced value of $\lambda$.
 
-For selecting the value of $\lambda$, different behaviors of the binary and probabilistic occupation matrices should be considered. As you can see in \Cref{fig:exp:lambda,fig:exp:lambda:RT}, when $K$ increases, the algorithm utilizing the probabilistic occupation matrix approaches to the saturation point faster than the one using the binary occupation matrix. Therefore, with same $\lambda$, the probabilistic occupation matrix allows the algorithm to produce the shorter synopsis video than the binary occupation matrix; it other words, it has better FR and CR, but higher OR than its counterpart. Based on the observation, it is better to select different $\lambda$ for the probabilistic and binary occupation matrices. However, for easier parameter analysis in following sections, both types of the occupation matrix utilize $\lambda$ of 100.
+For selecting the value of $\lambda$, different behaviors of the binary and probabilistic occupation matrices should be considered. As you can see in \Cref{fig:exp:lambda,fig:exp:lambda:RT}, when $K$ increases, the algorithm utilizing the probabilistic occupation matrix approaches to the saturation point faster than the one using the binary occupation matrix. Therefore, with same $\lambda$, the probabilistic occupation matrix allows the algorithm to produce the shorter synopsis video than the binary occupation matrix; it other words, it has better FR and CR, but higher OR than its counterpart. Based on the observations, it is better to select different $\lambda$ for different types of occupation matrices. However, for easier analysis of parameters in following sections, both types of the occupation matrix utilize the same $\lambda$ value of 100.
 
 \pgfplotstableread[col sep=comma]{exp_bin_occ/crossroad03_length_param.csv}\tableLambdaOne
 \pgfplotstableread[col sep=comma]{exp_bin_occ/library02_length_param.csv}\tableLambdaTwo
@@ -1015,11 +1016,11 @@ For selecting the value of $\lambda$, different behaviors of the binary and prob
 
 \subsubsection{Size of occupation matrix}
 \label{sec:exp:occ}
-Second experiment is conducted by changing spatial resolution $\mathcal{M}\times\mathcal{N}$ of the occupation matrix. Assume that the aspect ratio of the input video is 16:9 (the ratio of the width to the height). Based on the assumption, four candidates of $\mathcal{M}\times\mathcal{N}$ are considered in this experiment: $9\times16$, $18\times32$, $36\times64$, and $72\times128$. Remaining parameters are fixed as $\lambda=100$ and $K=20$ and the algorithm utilizes both binary and probabilistic occupation matrices.
+Second experiment is conducted by changing spatial resolution $\mathcal{M}\times\mathcal{N}$ of the occupation matrix. Assume that the aspect ratio of the input video is 16:9 (the ratio of the width to the height). Under this assumption, four candidates of $\mathcal{M}\times\mathcal{N}$ are considered in this experiment: $9\times16$, $18\times32$, $36\times64$, and $72\times128$. Remaining parameters are fixed as $\lambda=100$ and $K=20$ and the algorithm utilizes both binary and probabilistic occupation matrices.
 
-The larger binary occupation matrix has a better ability to encode the locations of the objects; therefore, the algorithm can finely adjust starting labels to avoid collisions. Then, the resulting video has lower FR and higher CR than the one using the smaller occupation matrix as shown in \Cref{fig:exp:occ}. However, interestingly, increasing the resolution of the probabilistic occupation matrix does not affect to the performance regarding three metrics. This indicates that even the low resolution probabilistic occupation matrix has already got enough capability to express fine locations of the objects.
+The larger binary occupation matrix has a better ability to encode the locations of the objects; therefore, the algorithm can finely adjust starting labels to avoid collisions. Then, the resulting video has lower FR and higher CR than the one using the smaller occupation matrix as shown in \Cref{fig:exp:occ}. However, interestingly, increasing the resolution of the probabilistic occupation matrix does not affect to the performance regarding three metrics. This indicates that even the low resolution probabilistic occupation matrix has enough capability to express fine locations of the objects.
 
-In terms of RT, reducing spatial resolution for both types of the occupation matrix drastically increases the computation speed of the algorithm as depicted in \Cref{fig:exp:occ:RT}. According to \Cref{tb:exp:occ:RT}, in overall, the probabilistic occupation matrix can compute rearranged starting labels faster than the binary occupation matrix; however, the tendency of the computation time for different $\mathcal{M}\times\mathcal{N}$ is almost identical. Especially, the computation time for both types of the occupation matrix is reduced by at least 1/40, when the width and height of the matrix are scaled by 1/8 (from $72\times128$ to $9\times16$).
+In terms of RT, reducing spatial resolution for both types of the occupation matrix drastically increases the computation speed of the algorithm as depicted in \Cref{fig:exp:occ:RT}. According to \Cref{tb:exp:occ:RT}, the probabilistic occupation matrix allows us to compute rearranged starting labels faster than the binary counterpart; however, the tendency of the computation time for different $\mathcal{M}\times\mathcal{N}$ is almost identical. Especially, the computation time for both types of the occupation matrix is reduced by at least 1/40, when the width and height of the matrix are scaled by 1/8 (from $72\times128$ to $9\times16$).
 
 In summary, there are definite advantages in FR and CR for increasing the spatial resolution of the binary matrix; however, the degradation of the computation speed is too serious to be neglected. On the other hand, large probabilistic occupation matrix does not have any advantages regarding the performance metrics, and even with the low resolution matrix, the algorithm can have a better condensation ability than the one uses the high resolution binary matrix. Therefore, for both types of the occupation matrix, the smallest resolution ($9\times16$) is preferred in this dissertation.
 
@@ -1289,11 +1290,11 @@ In summary, there are definite advantages in FR and CR for increasing the spatia
 \label{sec:exp:queue}
 Adjusting the size of the queue $K$ determines how many object tubes are considered during each tube rearrangement step. The experiment is conducted as same manner as in \Cref{sec:exp:weight,sec:exp:occ}, while $K$ is changed from 10 to 100 with 10 interval. Other parameters are fixed to $\lambda=100$ and $\mathcal{M}\times\mathcal{N}=9\times16$, and both binary and probabilistic occupation matrix are used as spatial approximations of the foreground pixels. Results of the experiments are presented in \Cref{fig:exp:queue,fig:exp:queue:RT}.
 
-For the binary occupation matrix, \Cref{fig:exp:queue} shows that, for increasing $K$, FR is decreased by at least 0.2 and CR is slightly increased, while OR remains almost unchanged. On the other hand, in general, the algorithm using the probabilistic matrix produces shorter synopsis videos with higher CR and OR. The key difference between the binary and occupation matrices is that the algorithm using the binary matrix produces synopsis videos having constant OR regardless of $K$. In other words, the resulting synopsis video never becomes more crowded even if $K$ is large.
+For the binary occupation matrix, \Cref{fig:exp:queue} shows that along with increasing $K$, FR is decreased by at least 0.2 and CR is increased slightly, while OR remains almost unchanged. On the other hand, the algorithm using the probabilistic matrix produces shorter synopsis videos with higher CR and OR. The key difference between the binary and probabilistic occupation matrices is that the binary matrix allows us to produce synopsis videos having constant OR regardless of $K$. In other words, the resulting synopsis video never becomes more crowded even if $K$ is large.
 
 It is obvious that the algorithm takes more time to get rearranged labels for increasing $K$ as shown in \Cref{fig:exp:queue:RT}. Additionally, the computational advantage of the probabilistic matrix over the binary matrix is clearly seen in the result. As discussed many times throughout \Cref{sec:exp:param}, since the algorithm using the probabilistic matrix produces shorter synopsis videos than the one using the binary matrix, the number of frames to consider during the tube rearrangement stage becomes smaller. In consequence, slopes of \Cref{fig:exp:queue:RT:b} are less steeper than that of \Cref{fig:exp:queue:RT:a}.
 
-Similar to selecting $\lambda$, there is a trade-off between RT and other metrics for selecting $K$. Empirically, for both binary and probabilistic matrices, a median of the candidate values, 50, is used throughout the subsequent experiments.
+Similar to selecting $\lambda$, there is a trade-off between RT and other metrics for selecting $K$. Empirically, for both binary and probabilistic matrices, a median of the candidate values, 50, is used in the subsequent experiments.
 
 \pgfplotstableread[col sep=comma]{exp_bin_occ/crossroad03_size_of_queue.csv}\tableQueueOne
 \pgfplotstableread[col sep=comma]{exp_bin_occ/library02_size_of_queue.csv}\tableQueueTwo
@@ -1517,13 +1518,11 @@ Similar to selecting $\lambda$, there is a trade-off between RT and other metric
 \end{sidewaysfigure}
 
 \subsubsection{Type of occupation matrix}
-Based on the observations so far, with same parameters, the binary occupation matrix has a benefit for OR over the probabilistic occupation matrix, which means that the resulting synopsis video is less crowded and the objects in the video can be easily distinguished from each other. On the other hand, the algorithm using the probabilistic matrix outperforms the one utilizing the binary matrix for every performance metric except OR. Therefore it produces more crowded but compact synopsis video than the binary equivalent.
-
-In conclusion, using the probabilistic occupation matrix is beneficial for the most of situations. If the user wants a less crowded condensed video, using the binary occupation matrix can be an option. However, instead of changing the type of the occupation matrix, adjusting $\lambda$ is more simple and desirable solution.
+Based on the observations so far, the one and only advantage of the binary occupation matrix over the probabilistic occupation matrix is OR. Therefore, we can say that using the probabilistic occupation matrix is beneficial for the most of situations. If the user wants a less crowded condensed video, using the binary occupation matrix can be an option. However, instead of changing the type of the occupation matrix, adjusting $\lambda$ is more simple and desirable solution.
 
 \subsection{Ablation study for speed up techniques}
 \label{sec:exp:parallel}
-In this section, ablation study for the two speed up techniques used in the proposed algorithm is conducted: FFT and parallel processing. Total four versions of the algorithm are compared regarding RT as summarized in \Cref{tb:ablation}. The baseline of the algorithm denoted as Occ utilizes the occupation matrix and the cross-correlation of the signals in time domain to calculate collisions between the objects. For all versions of the algorithm, the probabilistic occupation matrix of $9\times16$ resolution is utilized and other parameters are fixed as $\lambda=100$ and $K=50$. As similar to \Cref{sec:exp:param}, five video sequences from VC7 to VC11 are utilized for the evaluation.
+In this section, ablation study for the two speed up techniques used in the proposed algorithm is conducted: FFT and parallel processing. Total four versions of the algorithm are compared regarding RT as summarized in \Cref{tb:ablation}. The baseline of the algorithm denoted as Occ, utilizes the occupation matrix and the cross-correlation to calculate collisions between the objects. For all versions of the algorithm, the probabilistic occupation matrix of $9\times16$ resolution is utilized and other parameters are fixed as $\lambda=100$ and $K=50$. As similar to \Cref{sec:exp:param}, five video sequences from VC7 to VC11 are utilized for the evaluation.
 
 \begin{table}
 	\centering
@@ -1576,21 +1575,21 @@ In this section, ablation study for the two speed up techniques used in the prop
 	\label{fig:exp:ablation}
 \end{figure}
 
-According to the result in \Cref{fig:exp:ablation}, FFT reduces the computational burden of the proposed algorithm by at least 1/20. On the other hand, applying parallel computing to the algorithm increases its computation speed by 5 times in average. Utilizing both speed up techniques (Occ+FP) produces the best result in RT; however, the performance gain from Occ+F to Occ+FP is less drastic than the one from Occ to Occ+P; the proposed algorithm with Occ+FP only produces approximately 2.5 faster results than the non-parallelized version.
+According to the result in \Cref{fig:exp:ablation}, FFT reduces the computational burden of the proposed algorithm by at least 1/20. On the other hand, applying parallel computing to the algorithm increases its computation speed by 5 times in average. Utilizing both speed up techniques (Occ+FP) produces the best result in RT; however, the performance gain from Occ+F to Occ+FP is less drastic than the one from Occ to Occ+P; the proposed algorithm with Occ+FP produces approximately 2.5 faster results than the non-parallelized version.
 
 \subsection{Performance comparisons}
 \label{sec:exp:comparison}
-To compare the performance of the proposed algorithm with others, three recently introduced online tube rearrangement algorithms~\cite{Fu2014,Zhu2015,He2017} are reproduced by using C/C++ languages. For fair comparisons, the existing algorithms utilize the same values of the required parameters as described in the original papers. The values of the parameters required for the proposed algorithm are summarized as follows: $\lambda=100$, $\mathcal{M}\times\mathcal{N}=9\times16$, $K=50$, and the probabilistic occupation matrix. Except for the Tetris like optimization~\cite{Zhu2015} which utilizes its own online tube filling strategy, all algorithms run on the same online video synopsis framework which maintains a fixed sized queue of $K$ for containing moving objects. Note that existing algorithms have not employed any spatial subsampling.
+To compare the performance of the proposed algorithm with others, three recently introduced online tube rearrangement algorithms~\cite{Fu2014,Zhu2015,He2017} are reproduced by using C/C++ languages. For fair comparisons, the existing algorithms utilize the same values of the required parameters as described in the original papers. The values of the parameters required for the proposed algorithm are summarized as follows: $\lambda=100$, $\mathcal{M}\times\mathcal{N}=9\times16$, $K=50$, and the probabilistic occupation matrix. Except for the Tetris like optimization~\cite{Zhu2015} which utilizes its own online tube filling strategy, all algorithms run on the same online video synopsis framework which maintains a fixed sized queue of $K$ for maintaining moving objects. Note that existing algorithms have not employed any spatial subsampling.
 
-Regarding RT, as shown in \Cref{fig:exp:RT}, the proposed algorithm outperforms other algorithms with a large margin. Since the algorithm of Fu~\etal~\cite{Fu2014} tries to group object tubes possible to have interactions and put them into the same portion of the condensed video, it takes much more time in computing rearranged labels even though it has benefits from the online framework. For other two algorithms, we can see that the key concepts of the optimization (greedy search~\cite{Zhu2015} and PCG~\cite{He2017}) definitely contributes to the performance, but their difference is not significant. 
+Regarding RT, as shown in \Cref{fig:exp:RT}, the proposed algorithm with FFT (Occ+F) runs at least 2.26 times faster than other algorithms. This performance gap can be increased by applying parallel processing to the proposed algorithm. In this case, RT of the proposed algorithm is less than 1/6 of comparing algorithms' RT. For the algorithm of Fu~\etal~\cite{Fu2014}, due to the extra computation of the motion proximity and interaction, it takes much more time in computing rearranged labels even though it has benefits from the hierarchical optimization. For other two algorithms, we can see that the key concepts of the optimization (Tetris-like tube filling~\cite{Zhu2015} and PCG~\cite{He2017}) definitely contributes to the performance, but their differences are not significant. 
 
 According to \Cref{fig:exp:FR}, average FR for each algorithm can be listed as 0.0951, 0.0853, 0.0686, and 0.102 in order; therefore, the best performance is achieved by the algorithm of Zhu~\etal~\cite{Zhu2015}. On the other hand, performances of other three algorithms are not remarkably different. Note that even though the proposed algorithm utilizes the spatial approximation of the foreground, its FR is comparable to other algorithms.
 
 For CR, as we can see in \Cref{fig:exp:CR}, Zhu~\etal~\cite{Zhu2015} performs the best. This result can be expected, because FR and CR have a weak positive correlation; the algorithm with better FR are more likely to have better CR as well. However, the proposed algorithm achieves the second best performance in average, even though it has been ranked at the 3rd place for FR.
 
-Typically, FR and OR have a weak negative correlation, because higher FR means that the spatio-temporal domain of the condensed video is smaller than the one with lower FR; in consequence, the objects are more likely to have collisions between them. However, the performance ranking for OR is very different from that for FR. According to \Cref{fig:exp:OR}, the list of average OR for each algorithm is 0.1467, 0.285, 0.2017, and 0.21 in order. The proposed algorithm has been ranked at the 1st position and the Tetris like optimization~\cite{Zhu2015} follows it. The algorithm of Fu~\etal~\cite{Fu2014} takes the 3rd position and the PCG baesd algorithm~\cite{He2017} performs the worst.
+Typically, FR and OR have a weak negative correlation, because higher FR means that the spatio-temporal domain of the condensed video is smaller than the one with lower FR; in consequence, the objects are more likely to have collisions between them. However, the performance ranking for OR has a lack of correlation for FR. According to \Cref{fig:exp:OR}, the average OR for each algorithm is 0.1467, 0.285, 0.2017, and 0.21 in order. The proposed algorithm has been ranked at the 1st position and the Tetris like optimization~\cite{Zhu2015} follows it. The algorithm of Fu~\etal~\cite{Fu2014} takes the 3rd position and the PCG baesd algorithm~\cite{He2017} performs the worst.
 
-Except for the algorithm considering the structured motion~\cite{Fu2014}, the objective of other three algorithms is focused on improving the computation speed of the online video synopsis framework. Thanks to the concepts they are using, all of the algorithms can rearrange starting labels within 10 seconds at maximum for the test sequences. However, the algorithms have their own distinctive characteristics. For the Tetris like optimization~\cite{Zhu2015}, it definitely has benefits for both FR and CR, which means that it can generate the shorter condensed video and can utilize the target spatio-temporal domain efficiently. For the algorithm of He~\etal~\cite{He2017}, the concept of PCG takes an advantage in RT and FR, where it achieves the 2nd best performance for both metrics. However, as compared to FR, its CR and OR are less than expected, which indicates that it produces suboptimal solutions for the rearrangement task. On the other hand, thanks to the occupation matrix with two speed up techniques (Fourier transform and parallel processing), the proposed algorithm is outmatched other algorithms regarding RT and OR. This indicates that the user can get the visually untangled synopsis video with a low latency through the proposed online video synopsis framework.
+Except for the algorithm considering the structured motion~\cite{Fu2014}, the objective of other three algorithms is focused on improving the computation speed of the online video synopsis framework. Thanks to the concepts they are using, all of the algorithms can rearrange starting labels within 10 seconds at maximum for the test sequences. However, the algorithms have their own distinctive characteristics. For the Tetris like optimization~\cite{Zhu2015}, it definitely has benefits for both FR and CR, which means that it can generate the shorter condensed video and can utilize the target spatio-temporal domain efficiently. For the algorithm of He~\etal~\cite{He2017}, the concept of PCG takes an advantage in RT and FR, where it achieves the 2nd best performance for both metrics. However, as compared to FR, its CR and OR are less than expected, which indicates that it produces suboptimal solutions for the rearrangement task. On the other hand, thanks to the occupation matrix with two speed up techniques (FFT and parallel processing), the proposed algorithm is outmatched other algorithms regarding RT and OR. This indicates that the user can get the visually untangled synopsis video with a low latency through the proposed online video synopsis framework.
 
 \pgfplotstableread[col sep=comma]{exp_comp/complex.csv}\tableVCOne
 \pgfplotstableread[col sep=comma]{exp_comp/crossroad01.csv}\tableVCTwo
@@ -1599,33 +1598,41 @@ Except for the algorithm considering the structured motion~\cite{Fu2014}, the ob
 \pgfplotstableread[col sep=comma]{exp_comp/parking_lot.csv}\tableVCFive
 \pgfplotstableread[col sep=comma]{exp_comp/subway_entrance01.csv}\tableVCSix
 
+\pgfplotstableread[col sep=comma]{exp_comp/complex_RT.csv}\tableVCOneRT
+\pgfplotstableread[col sep=comma]{exp_comp/crossroad01_RT.csv}\tableVCTwoRT
+\pgfplotstableread[col sep=comma]{exp_comp/crossroad02_RT.csv}\tableVCThreeRT
+\pgfplotstableread[col sep=comma]{exp_comp/library01_RT.csv}\tableVCFourRT
+\pgfplotstableread[col sep=comma]{exp_comp/parking_lot_RT.csv}\tableVCFiveRT
+\pgfplotstableread[col sep=comma]{exp_comp/subway_entrance01_RT.csv}\tableVCSixRT
+
 \begin{figure}
 	\centering
 	\begin{tikzpicture}[scale = 1]
 	\begin{axis}[
+	width = 0.9\linewidth,
 	ylabel = {Seconds},
 	ymajorgrids,
 	ybar,
 	enlargelimits = 0.15,
-	bar width = 5pt,
+	bar width = 6pt,
 	xtick = data,
-	xticklabels from table = {\tableVCOne}{Domain},
+	xticklabels from table = {\tableVCOneRT}{Domain},
 	legend style = {at = {(0.5,-0.15)}, anchor=north, legend columns=-1},
 	nodes near coords,
 	every node near coord/.append style = {font=\tiny, rotate=90, anchor=west},
 	]
 	
-	\addplot table [x expr=\coordindex, y=RT] {\tableVCOne};
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCOneRT};
 	\addlegendentry{VC1}
-	\addplot table [x expr=\coordindex, y=RT] {\tableVCTwo};
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCTwoRT};
 	\addlegendentry{VC2}
-	\addplot table [x expr=\coordindex, y=RT] {\tableVCThree};
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCThreeRT};
 	\addlegendentry{VC3}
-	\addplot table [x expr=\coordindex, y=RT] {\tableVCFour};
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCFourRT};
 	\addlegendentry{VC4}
-	\addplot table [x expr=\coordindex, y=RT] {\tableVCFive};
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCFiveRT};
 	\addlegendentry{VC5}
-	\addplot table [x expr=\coordindex, y=RT] {\tableVCSix};
+	\addplot table [x expr=\coordindex, y=RT] {\tableVCSixRT};
 	\addlegendentry{VC6}
 	
 	\end{axis}
@@ -1738,7 +1745,7 @@ Except for the algorithm considering the structured motion~\cite{Fu2014}, the ob
 
 \chapter{Conclusion}
 \label{sec:conc}
-In this dissertation, the concurrent probabilistic tube rearrangement algorithm for online video synopsis is proposed. To reduce the burden of calculating the collision energy, the occupation matrix, spatial approximation of foreground pixels, is introduced to define the new energy term. The new collision energy is defined as element-wise multiplications of occupation matrices. This energy can be efficiently computed by using FFT and parallel processing. According to the ablation study, both speed up techniques decrease running time of the proposed algorithm by approximately 1/60. In addition, the extensive parameter analysis has been conducted to choose optimum parameters required for the proposed algorithm. For the comparative experiments, the proposed algorithm optimizes starting labels of the objects within 1.3 seconds for all test sequences. This is at least 1/6 faster results than states-of-art online tube rearrangement algorithms. Moreover, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others. The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework.
+In this dissertation, the concurrent probabilistic tube rearrangement algorithm for online video synopsis is proposed. To reduce the burden of calculating the collision energy, the occupation matrix, spatial approximation of foreground pixels, is introduced to define the new energy term. The new collision energy is defined as element-wise multiplications of occupation matrices. This energy can be efficiently computed by using FFT and parallel processing. According to the ablation study, both speed up techniques decrease running time of the proposed algorithm by approximately 1/60. In addition, the extensive parameter analysis has been conducted to choose proper values of the parameters required for the proposed algorithm. For the comparative experiments, the proposed algorithm optimizes starting labels of the objects within 1.3 seconds for all test sequences. This is at least 1/6 faster results than states-of-art online tube rearrangement algorithms. Moreover, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others. The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework.
 
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,video_synopsis}

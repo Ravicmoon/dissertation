@@ -5,7 +5,7 @@
 \usepackage{geometry}
 \geometry{a4paper, left=35mm, right=35mm, top=53mm, bottom=53mm, head=15mm, foot=15mm}
 \linespread{2.0}
-\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
 \usepackage{rotating}
 \usepackage[caption=false,font=small]{subfig}
 \usepackage[labelsep=period]{caption}
