@@ -27,7 +27,7 @@
 	\begin{tabularx}{185mm}{>{\centering\arraybackslash}X}
 		\\[2.5cm]
 		\largefont{Thesis for the degree of Doctor of Philosophy}\\[3cm]
-		\fontsize{20}{12}\selectfont{Concurrent Probabilistic Tube Rearrangement Algorithm for Online Video Synopsis}
+		\fontsize{20}{12}\selectfont{Efficient Tube Rearrangement Algorithms for\newline Online Video Synopsis}
 	\end{tabularx}
 	\vfill
 	\begin{tabularx}{185mm}{>{\centering\arraybackslash}X}
@@ -42,7 +42,7 @@
 	\begin{tabularx}{185mm}{>{\centering\arraybackslash}X}
 		\\[2cm]
 		\largefont{Thesis for the degree of Doctor of Philosophy}\\[2cm]
-		\fontsize{20}{12}\selectfont{Concurrent Probabilistic Tube Rearrangement Algorithm for Online Video Synopsis}
+		\fontsize{20}{12}\selectfont{Efficient Tube Rearrangement Algorithms for\newline Online Video Synopsis}
 	\end{tabularx}
 	\vfill
 	\begin{tabularx}{185mm}{>{\centering\arraybackslash}X}
@@ -71,11 +71,12 @@
 
 \chapter*{ABSTRACT}
 \addcontentsline{toc}{chapter}{\textbf{ABSTRACT}}
-Video synopsis allows us to analyze security videos efficiently by condensing or shortening a long video into a short one. To generate a condensed video, moving objects are extracted in the form of object tubes. Then, these tubes are rearranged in the temporal domain using a predefined objective function. It consists of several energy terms which play important roles in making a visually appealing condensed video. Among them, collision energy creates a bottleneck in the computation because it requires two object tubes as input arguments. Existing approaches try to reduce the computation time of the collision energy calculation by reducing the number of tubes processed at once. However, those approaches are not sufficient to generate condensed video when the number of object tubes becomes large.
 
-This dissertation presents a concurrent probabilistic tube rearrangement algorithm targeted for online video synopsis. The proposed algorithm reduces the computational complexity of the collision energy calculation itself by using fast Fourier transform (FFT). For the first step of the computational complexity reduction, occupation matrices, foreground masks having low resolution, have been introduced to represent locations of the object tubes. Then, collision energy can be computed as a series of element-wise multiplications between the occupation matrices. This process is accelerated by using FFT and parallel processing.
+Video synopsis allows us to analyze security videos efficiently by condensing a long video into a short one. To generate a condensed video, moving objects are extracted from the input video in the form of object tubes. Then, these tubes are rearranged in the temporal domain using a predefined objective function. It consists of several energy terms which play important roles in making a visually appealing condensed video. Among them, collision energy creates a bottleneck in the computation because it requires two object tubes as input arguments. Existing approaches try to reduce the computation time of the collision energy calculation by reducing the number of tubes processed at once. However, computational complexity of the approaches are not sufficient to generate the condensed video when the number of object tubes is large.
 
-To evaluate and analyze the performance of the proposed algorithm, total 10 hours long videos are captured at four different places of Hanyang University, Seoul Korea. For all the test sequences, the proposed algorithm can produce condensed videos within 0.75 seconds in average, and it is at least 1/6 faster results than the existing algorithms. Moreover, resulting synopsis videos of the proposed algorithm have less collisions than its competitors. For better understanding of the proposed algorithm, effectiveness of two speed up techniques has been analyzed through the ablation study, and parameter analysis of the proposed algorithm has been conducted extensively.
+This dissertation presents efficient tube rearrangement algorithms targeted for online video synopsis. The proposed algorithms reduce the computational complexity of the collision energy calculation itself by using fast Fourier transform (FFT). For the first step of the computational complexity reduction, occupation matrices, foreground masks having low resolution, have been introduced to represent coarse locations of the object tubes. Then, collision energy can be computed as a series of element-wise multiplications between the occupation matrices. This process is same as conducting 1D cross-correlations between two sets of signals. Therefore, computational complexity of the collision energy calculation can be reduced by applying FFT. Moreover, parallel processing can be utilized for further improvements of computation time.
+
+To evaluate and analyze the performance of the proposed algorithms, total 10 hours long videos are captured at four different places of Hanyang University, Seoul Korea. For all the test sequences, the proposed algorithm with FFT can rearrange object tubes within 1.89 seconds in average, and this is at least 2.26 times faster result than existing algorithms. Moreover, the result can be accelerated in conjunction with parallel processing. In this case, it only takes 0.75 seconds in average for the tube rearrangement task. In addition, resulting synopsis videos of the proposed algorithms have less collisions than comparing algorithms. For better understanding of the proposed algorithm, effectiveness of two speed up techniques (FFT and parallel processing) has been analyzed through the ablation study, and parameter analysis of the proposed algorithm has been conducted extensively.
 \newpage
 
 \chapter{Introduction}
@@ -92,13 +93,13 @@ In order to cope with the problem, Pritch~\etal~\cite{Pritch2009} suggest
 a clustering based optimization algorithm. It divides object tubes into several subsets; then, the optimization algorithm is conducted on each subset. Since the number of object tubes belonging to each subset is much smaller than $K$, execution time of the optimization algorithm is greatly reduced. However, its condensation result depends on the performance of the clustering algorithm which has a chance to
 generate inappropriate clusters.
 
-An alternative approach to tube rearrangement is an online video synopsis~\cite{Huang2014,Feng2012,Zhu2015,He2017,Fu2014}, which solves a stepwise optimization problem. In stepwise optimization, instead of considering entire object tubes at the same time, the starting labels of the object tubes are determined one by one. Therefore, it requires less computational power and memory space than batch or offline video synopsis. In addition, since online video synopsis optimizes the object tubes in chronological order, it is not necessary to consider temporal and background consistencies. Therefore, the most of online video synopsis frameworks mainly consider the collision energy during the optimization.
+An alternative approach to tube rearrangement is an online video synopsis~\cite{Feng2012,Huang2014,Fu2014,Zhu2015,He2017,He2017a}, which solves a stepwise optimization problem. In stepwise optimization, instead of considering entire object tubes at the same time, the starting labels of the object tubes are determined one by one. Therefore, it requires less computational power and memory space than batch or offline video synopsis. In addition, since online video synopsis optimizes the object tubes in chronological order, it is not necessary to consider temporal and background consistencies. Therefore, the most of online video synopsis frameworks mainly consider the collision energy during the optimization.
 
-Based on such advantages, recent studies of online video synopsis focused on finding efficient ways of solving a stepwise optimization problem: for example, the maximum a posteriori estimation~\cite{Huang2014}, a Tetris-like tube rearrangement strategy~\cite{Feng2012,Zhu2015}, and a potential collision graph~\cite{He2017}. 
-Even though these existing algorithms have their own virtue, 
-they have lack of considerations of multi-core environment, which means that there are still rooms for improvements.
+Based on such advantages, recent studies of online video synopsis focused on finding efficient ways of solving a stepwise optimization problem: for example, the maximum a posteriori estimation~\cite{Huang2014}, a Tetris-like tube rearrangement strategy~\cite{Feng2012,Zhu2015}, and a potential collision graph~\cite{He2017,He2017a}. Even though these existing algorithms have their own virtues, computational complexities of the algorithms are not efficient enough to consider large amount of object tubes, and they have lack of considerations for utilizing multi-core resources to speed up the computation.
 
-In this dissertation, the tube rearrangement problem is reformulated as a suitable form for parallel processing, and the novel concurrent optimization algorithm based on 1D convolutions is proposed to accelerate the optimization process. As in other online tube rearrangement algorithms~\cite{Huang2014,Feng2012,Zhu2015,He2017,Fu2014}, the collision energy is primarily considered during the tube rearrangement. As a preprocessing step, the proposed algorithm reshapes object tubes into probabilistic occupation matrices of $\mathcal{M} \times \mathcal{N} \times \mathcal{T}$ dimension, where $\mathcal{M}$ and $\mathcal{N}$ represent the spatial domain, and $\mathcal{T}$ represents the time domain. This occupation matrix becomes a fundamental building block of the proposed algorithm. Then, the collision energy between two object tubes can be computed as element-wise multiplications of two occupation matrices. This process can be accelerated by utilizing fast Fourier transform (FFT)~\cite{Oppenheim2009} in conjunction with parallel computing; therefore, the proposed algorithm can effectively determine the starting labels of numerous object tubes in very short amount of time.
+This dissertation presents efficient online tube rearrangement algorithms which utilize fast Fourier transform (FFT)~\cite{Oppenheim2009} and parallel processing. The main role of FFT is to reduce the computational complexity of the collision energy calculation, and the tube rearrangement speed can be further improved by parallel processing. Note that since the proposed algorithm is targeted for online video synopsis, the collision energy is primarily considered during the tube rearrangement like other online tube rearrangement algorithms~\cite{Feng2012,Huang2014,Fu2014,Zhu2015,He2017,He2017a}. 
+
+As a preprocessing step, the proposed algorithm reshapes object tubes into occupation matrices of $\mathcal{M} \times \mathcal{N} \times \mathcal{T}$ dimension, where $\mathcal{M}$ and $\mathcal{N}$ represent the spatial domain, and $\mathcal{T}$ represents the time domain. This occupation matrix provides a coarse representation of the foreground masks; therefore $\mathcal{M}$ and $\mathcal{N}$ are much smaller than height and width of the input video. By using the occupation matrix, the collision energy between two object tubes is defined as element-wise multiplications of two matrices. To determine a staring label of the incoming object tube, collision energies for different starting labels are computed first; then, the starting label having a minimum collision energy is selected as the optimum one. Interestingly, this process is same as conducting $\mathcal{M}\times\mathcal{N}$ 1D cross-correlations between two sets of signals and finding the starting label which produces minimum responses. We can use either ways to solve the tube rearrangement task for online video synopsis. However, the later one which uses 1D cross-correlations has a chance to reduce its computational complexity by using FFT. In addition, applying parallel processing to the algorithm is straightforward. These improvements have been started from using the occupation matrix as a spatial approximation of the foreground mask. More comprehensive explanation will be presented at \Cref{sec:proposed}.
 
 \section{Related works}
 \label{sec:intro:related}
@@ -139,20 +140,45 @@ After the very first appearance of the video synopsis technique~\cite{Rav-Acha20
 	{
 		\includegraphics[width=0.2\linewidth]{ext-li08.png}
 	}
-	\caption{Synopsis results by scaling down objects~\cite{Li2016}. Because object sizes are not consistent and matched with the context, the results are visually uncomfortable.}
+	\caption{Synopsis results by scaling down objects~\cite{Li2016a}. Because object sizes are not consistent and matched with the context, the results are visually uncomfortable.}
 	\label{fig:Li}
 \end{figure}
 
-One of the big hurdles for video synopsis is that it works poorly on very crowded scenes. There are two approaches to solve the problem by 1) scaling down object sizes~\cite{Li2016} and 2) rearranging objects in both spatial and temporal domain~\cite{Nie2014}. As illustrated in \Cref{fig:Li}, reducing size of the objects can produce the less complicated condensed video and can have more objects in the scene simultaneously. However, as we can see in the results, scaled objects are visually awkward and some interactions between the objects are hard to understand. On the other hand, Li~\etal~\cite{Li2016} solve the problem by generating expanded background images and rearranging object tubes in spatio-temporal domain. As shown in \Cref{fig:Nie}, the background images have synthetically generated regions; the width of the sidewalk in the original image has been expanded to triple. Then, the algorithm utilizes such regions to reduce a complexity of the scene. It can produces descent results when the many objects in the scene walk along the same path. However, since generating the synthetic background image is not a straightforward task, the algorithm cannot be applied to videos having complex real-world scenes. In addition, as similar to the work of Nie~\etal~\cite{Nie2014}, the user has a chance to miss importance interactions between the objects.
+One of the big hurdles for video synopsis is that it works poorly on very crowded scenes. There are two approaches to solve the problem by 1) scaling down object sizes~\cite{Li2016a} and 2) rearranging objects in both spatial and temporal domain~\cite{Nie2014}. As illustrated in \Cref{fig:Li}, reducing size of the objects can produce the less complicated condensed video and can have more objects in the scene simultaneously. However, as we can see in the results, scaled objects are visually awkward and some interactions between the objects are hard to understand. On the other hand, Nie~\etal~\cite{Nie2014} solve the problem by generating expanded background images and rearranging object tubes in spatio-temporal domain. As shown in \Cref{fig:Nie}, the background images contain synthetically generated regions; the width of the sidewalk in the original image has been expanded to triple. Then, the algorithm utilizes such regions to reduce a complexity of the scene. It can produces decent results when the many objects in the scene walk along the same path. However, since generating the synthetic background image is not a straightforward task, the algorithm cannot be applied to videos having complex real-world scenarios. In addition, as similar to the work of Li~\etal~\cite{Li2016a}, the user has a chance to miss importance interactions between the objects.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{ext-nie.png}
+	\includegraphics[width=0.95\linewidth]{ext-nie.png}
 	\caption{Result of object rearrangements in both spatial and temporal domains~\cite{Nie2014}. Images in the first row are from the input videos and synopsis results are presented in the second row. As we can see in the figure, width of the sidewalk has been expanded to triple, so that more objects can be displayed at the single frame simultaneously.}
 	\label{fig:Nie}
 \end{figure}
 
-For the online video synopsis, six studies have been published in recent years. At first, the tube rearrangement algorithm inspired by the video game Tetris~\cite{Feng2012} has been developed. In the subsequent study~\cite{Zhu2015}, the high-performance online video synopsis framework which utilizes GPU and parallel processing to improve throughput of the system has been introduced. To apply the concept of Tetris to solve the video synopsis problem, two level cache condensed spaces (L1 and L2) are utilized. The L1 cache is the space, where starting labels of the objects are optimized. If the L1 cache space is filled enough with rearranged object tubes, the algorithm generates a portion of the synopsis video. On the other hand, L2 space is to hold tails of the object tubes which cannot be placed at L1 space completely. Since the portion of the condensed video is generated only when the L1 space is packed with objects, the length of the resulting video is changed according to the contents of the original video.
+One straightforward extension of video synopsis is applying it to the multicamera network. Hoshen~\etal~\cite{Hoshen2015} presents a concept of live video synopsis (LVS) in the multicamera network, where cameras belonging to the network have master-slave relationships. When some objects appear in the master camera, their past activities in the slave cameras are given to the users in the form of synopsis videos. Therefore, the users can understand objects' behaviors better and are easy to make a critical decision for the object. \Cref{fig:Hoshen} shows a result of LVS, where past activities of the objects in the master camera are simultaneously displayed in the views of the slave cameras. Zhu~\etal~\cite{Zhu2016} introduces a new cost to keep chronological orders between the object tubes from different cameras. To formulate the cost function, they define four types of key time stamps (KTSs) based on the sticky tracking~\cite{Feng2012}: start time, merging time, and splitting time, and end time. Then, the object tube is divided into several tracklets according to KTSs. These tracklets become building blocks of calculating the chronological disorder cost function. \Cref{fig:Zhu01} shows the framework to rearrange object tubes in multicamera network and the result is illustrated in \Cref{fig:Zhu02}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{ext-hoshen01.png}
+	\caption{Result of LVS~\cite{Hoshen2015}. Top figure is from the master camera, and remaining figures are synopsis videos of the slave cameras containing past activities of objects appearing in the master camera.}
+	\label{fig:Hoshen}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{ext-zhu01.eps}
+	\caption{Flowchart of the multicamera joint video synopsis~\cite{Zhu2016}. Object tubes extracted from multiple cameras are gathered and optimized together with the joint tube rearrangement. Then, several synopsis videos are generated with rearranged object tubes.}
+	\label{fig:Zhu01}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.9\linewidth]{ext-zhu02.eps}
+	\caption{Result of the multicamera joint video synopsis~\cite{Zhu2016} with two cameras placed along with the road. Since the white sedan with the red rectangle is driving from cam2 to cam1, it is more natural to see the object in the synopsis video of cam2 first. After that the object is shown in the condensed video of cam1 with the label of 295.}
+	\label{fig:Zhu02}
+\end{figure}
+
+For the online video synopsis, five recently published studies~\cite{Feng2012,Fu2014,Zhu2015,He2017,He2017a} will be discussed. At first, the tube rearrangement algorithm inspired by the video game Tetris~\cite{Feng2012} has been developed. In the subsequent study~\cite{Zhu2015}, the high-performance online video synopsis framework which utilizes GPU and parallel processing to improve a throughput of the system has been introduced. To apply the concept of Tetris to solve the video synopsis problem, two level cache condensed spaces (L1 and L2) are utilized. The L1 cache is the space, where starting labels of the objects are optimized. If the L1 cache space is filled enough with rearranged object tubes, the algorithm generates a portion of the synopsis video. On the other hand, L2 space is to hold tails of the object tubes which cannot be placed at L1 space completely. Since the portion of the condensed video is generated only when the L1 space is packed with objects, the length of the resulting video is changed according to the contents of the original video. 
+
+Aside from the interesting tube filling strategy, it utilizes a simple greedy optimization to select a location of the object tube. Because a solution of the greedy optimization is always local optimum, its result after few iterations may be far from the global optimum solution. To reduce the gap between them, roulette wheel selection~\cite{Mitchell1998} has been adopted, where it selects starting labels of the objects based on their probabilities. In consequence, the object has a chance to be rearranged in a better location than the deterministic approach. This roulette wheel selection can be applied to any online video synopsis which suffers from local optimum solutions.
 
 \begin{figure}
 	\centering
@@ -161,7 +187,33 @@ For the online video synopsis, six studies have been published in recent years. 
 	\label{fig:Fu}
 \end{figure}
 
-Fu~\etal~\cite{Fu2014} try to keep interactions between the objects from being broken in the condensed video generated by the online framework. To achieve the objective, they consider motion proximity and interaction of objects. Simply said, the objects which are close each other and have similar motions are more likely to have low pairwise energies. The conceptual diagram of the structure preserved synopsis is illustrated in \Cref{fig:Fu}. Apart from the importance of preserving the motion structure between the objects, it adds computational burden for calculating pairwise energy terms. Even though the online video synopsis frameworks has fewer energy terms to consider than the offline framework, such drawback is not desirable to improve the throughput or latency of the system.
+Fu~\etal~\cite{Fu2014} try to keep interactions between the objects from being broken in the condensed video generated by the online framework. To achieve the objective, they consider motion proximity and interaction of objects. Simply said, the objects which are close each other and have similar motions are more likely to have low pairwise energies. The conceptual diagram of the structure preserved synopsis is illustrated in \Cref{fig:Fu}. Apart from the importance of preserving the motion structure between the objects, it adds computational burden for calculating pairwise energy terms. Even though they utilize a hierarchical optimization which resembles the clustered synopsis~\cite{Pritch2009} to speed up the tube rearrangements and the online video synopsis frameworks has fewer energy terms to consider than the offline framework, such drawback is not desirable to improve the throughput or latency of the system.
+
+He~\etal~\cite{He2017} construct a potential collision graph (PCG) to represent collision relationships between the objects. Each pair of objects belongs to one of two relationships: collision free (CF) and collision potential (CP). CP is further divided into two cases: colliding in the same direction (CSD) and colliding in the opposite direction (COD). Example of the potential collision graph construction is illustrated in . After the graph construction, the smallest starting label satisfying simple constraints induced by the relationships is selected as a rearranged starting label of the object tube. Then, each starting label of the object tube is determined one by one through iterations. This tube rearrangement process can be computed very fast; however, the constraints cannot handle complex relationships between the objects (e.g., objects collided two or more times or objects have both CSD and COD relationships). Also, PCG cannot encode how severe the collision between the object is. Such drawbacks could make the algorithm select suboptimal solutions during the tube rearrangement task.
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[height=0.2\textheight]{ext-He01.eps}
+	}
+	\subfloat[]
+	{
+		\includegraphics[height=0.2\textheight]{ext-He02.eps}
+	}
+	\subfloat[]
+	{
+		\includegraphics[height=0.2\textheight]{ext-He03.eps}
+	}
+	\subfloat[]
+	{
+		\includegraphics[height=0.2\textheight]{ext-He04.eps}
+	}
+	\caption{Example of constructing PCG~\cite{He2017}. Since the object tube A has no potential collisions, the corresponding vertex has no connected edges to other vertices. Otherwise, object tubes having collision potentials (B-C and D-E) are connected to each others, and the edges have either positive (CSD relationship) or negative (COD relationship) values.}
+	\label{fig:He}
+\end{sidewaysfigure}
+
+In the following study of He~\etal~\cite{He2017a}, the PCG construction has been improved to consider one more case of the relationship, an intersection of object tubes. Then, they solve the tube rearrangement problem by applying $L(q)-coloring$ on the graph. Aside from the improvements, since the PCG only contains too abstract information of the collisions (start and end time of the collision and time of intersection between the objects), its ability of avoiding collisions relies on the value of the hyper-parameter $q$.
 
 %A summary of the recent advances in video synopsis is presented as follows. Nie~\etal~\cite{Nie2014} rearrange object tubes in both temporal and spatial domain to generate more condensed videos. Zhu~\etal~\cite{Zhu2014} and Mahapatra~\etal~\cite{Mahapatra2016} extend the concept of video synopsis to the multi-camera network. Wang~\etal~\cite{Wang2013} and Zhong~\etal~\cite{Zhong2014} utilize the compressed domain to generate synopsis videos efficiently. X. Li~\etal~\cite{Li2016a} scale down object sizes to reduce collisions in the synopsis video. Z. Li~\etal~\cite{Li2009} and K. Li~\etal~\cite{Li2016} introduce a seam carving method to remove redundant information from the original video.
 
@@ -230,10 +282,11 @@ where $I_i(x,y,t)$ is a foreground pixel of $i^{\rm{th}}$ object and $B(x,y,t)$ 
 Defining a proper $E_a$ is important for processing the query of the video synopsis users, since it determines which objects will be included in the resulting video. However, we do not have to directly optimize $E_a$ because object filtering step prior to the optimization with specific conditions (e.g., colors, trajectories, object types, and etc) can do the same functionality.
 
 \section{Time-lapse background generation}
-Before moving on to the next energy term, how to generate time-lapse background is briefly explained. Since the main objective of video synopsis is condensing the contents of the original video, background information as well as foreground has be condensed too. If the input video is 12 hours long and the condensed video is 10 minutes long, time-lapse background can be generated by uniformly subsampling every 720th of original background images or we can use the adaptive sampling rate proportional to (or inverse proportional to) the number of objects in the current frame~\cite{Pritch2008}. An example of the time-lapse background generation is illustrated in \ref{}.
+Before moving on to the next energy term, how to generate time-lapse background is briefly explained. Since the main objective of video synopsis is condensing the contents of the original video, background information as well as foreground has to be condensed too. If the input video is 12 hours long and the condensed video is 10 minutes long, time-lapse background can be generated by uniformly subsampling every $720^\textrm{th}$ of original background images or we can use the adaptive sampling rate proportional to (or inverse proportional to) the number of objects in the current frame~\cite{Pritch2008}. To generate background images, background modeling methods such as well known Gaussian Mixture Models (GMM)~\cite{Stauffer1999,Zivkovic2004,Zivkovic2006}, or simple temporal median of input images over several frames can be used. %An example of the time-lapse background generation is illustrated in \ref{}.
 
 \section{Background consistency energy}
-The role of the second energy term in (\ref{eq:basic_form}), $E_s$, is to seamlessly render the object tubes with the time-lapse background images. In the video synopsis framework, foreground pixels of the object tubes are stitched with the background images to generate the condensed video. During the stitching process, image blending algorithms (e.g., Poisson image editing~\cite{Perez2003}) can be used to smoothly blend the foreground and background pixels. However, inaccurate segmentation results of the foreground or foreground and background pixels from different time of day can cause visually unappealing results as shown in \ref{}. $E_s$ is defined to penalize such situation.
+The role of the second energy term in (\ref{eq:basic_form}), $E_s$, is to seamlessly render the object tubes with the time-lapse background images. In the video synopsis framework, foreground pixels of the object tubes are stitched with the background images to generate the condensed video. During the stitching process, image blending algorithms (e.g., Poisson image editing~\cite{Perez2003}) can be used to smoothly blend the foreground and background pixels. However, inaccurate segmentation results of the foreground or foreground and background pixels from different time of day can cause visually unappealing results.% as shown in \ref{}.
+$E_s$ is defined to penalize such situation.
 \begin{equation}
 \label{eq:bg_consistency}
 E_s(l_i)=\sum_{x,y \in \sigma_i,t}\norm{I_i(x,y,t)-B_t(x,y,t)}^2,
@@ -284,10 +337,10 @@ E_c(l_i,l_j)=\sum_{x,y,t \in t_i \cap t_j} \chi_i(x,y,t) \chi_j(x,y,t).
 Based on (\ref{eq:Ec}), a collision between two objects having distinctive colors from the background is considered more seriously. However, this definition of $E_c$ is computationally expensive due to $\chi(x,y,t)$. Therefore, in this dissertation, the multiplication of two characteristic functions is replaced with the intersection over union (IoU) between two bounding boxes of the objects.
 \begin{equation}
 \label{eq:EcApprox}
-E_c(l_i,l_j)=\sum_{x,y,t \in t_i \cap t_j} IoU \left( B_i(t),B_j(t) \right),
+E_c(l_i,l_j)=\sum_{x,y,t \in t_i \cap t_j} \textrm{IoU} \left( B_i(t),B_j(t) \right),
 \end{equation}
 \begin{equation}
-IoU(B_i,B_j)=\frac{B_i \cap B_j}{B_i \cup B_j},
+\textrm{IoU}(B_i,B_j)=\frac{B_i \cap B_j}{B_i \cup B_j},
 \end{equation}
 where $B_i(t)$ and $B_j(t)$ are bounding boxes of $i^{\rm{th}}$ and $j^{\rm{th}}$ objects at frame $t$, respectively. Since the bounding box does not represent an exact location of the object, (\ref{eq:EcApprox}) can be thought as an approximated version of (\ref{eq:Ec}).
 
@@ -480,10 +533,61 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 \end{algorithm}
 \chapter{Online video synopsis framework}
 \label{sec:framework}
-The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks~\cite{Fu2014,Zhu2015,He2017}, the proposed framework consists of four stages: background modeling, object tube generation, tube rearrangement, and object stitching. Among them, three components, except for the tube rearrangement, will be explained in detail.
+The proposed tube rearrangement algorithm is based on the online framework. Similar to existing online frameworks~\cite{Fu2014,Zhu2015,He2017}, the proposed framework consists of four stages: foreground segmentation, object tube generation, tube rearrangement, and object stitching. Among them, three components, except for the tube rearrangement, will be explained in detail.
 
-\section{Background modeling}
-Since this field of research has been studied for decades, there are numerous choices for modeling the background: Gaussian Mixture Models (GMM)~\cite{Zivkovic2004,Zivkovic2006}, ViBe variants~\cite{Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe}, SOBS~\cite{maddalena2008self,maddalena2012sobs}, non-parametric background modelings~\cite{Hofmann2012,Muchtar2018}, deep CNN based approaches~\cite{Patil2018,Lim2018}, and GAN based approaches~\cite{Bakkay2018,Sultana2019,Sakkos2019}. Among them, GMM introduced by Zivkovic~\cite{Zivkovic2004} is utilized in the framework, because OpenCV 3.0 or above supports the GPU accelerated implementation of the method.
+\section{Foreground segmentation}
+Since this field of research has been studied for decades, there are numerous choices for extracting foreground from the background. Very limited list of the methods are GMM~\cite{Stauffer1999,Zivkovic2004,Zivkovic2006}, ViBe variants~\cite{Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe}, SOBS~\cite{maddalena2008self,maddalena2012sobs}, non-parametric background modelings~\cite{Hofmann2012,Muchtar2018}, deep CNN based approaches~\cite{Patil2018,Lim2018}, and GAN based approaches~\cite{Bakkay2018,Sultana2019,Sakkos2019}.
+
+To select the best foreground segmentation algorithm for the proposed framework, six publicly available implementations are plugged into the framework and compared regarding segmentation quality, background quality, and computation time: GMM~\cite{Zivkovic2004}, ViBe~\cite{Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe}, CNT~\cite{CNT}, GSOC~\cite{GSOC}, PAWCS~\cite{St-Charles2015}, and LSBP~\cite{Guo2016}. Brief introductions to the algorithms are given as follows. 
+
+GMM of Zivkovic~\cite{Zivkovic2004} is named as MOG2 in the OpenCV library and its computation can be accelerated by using GPU. According to benchmarks for CDnet 2014~\cite{CDnet2014}, performance of GMM is hard to compete with recently published algorithms. However, its advantage comes from the low computational complexity. ViBe~\cite{Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe} is a renowned non-parametric background subtraction algorithm and has been improved over 5 years. CNT~\cite{CNT} is designed to subtract background fast in low spec hardware. GSOC~\cite{GSOC} is the background subtraction algorithm developed during OpenCV Google Summer of Code and named after it. PAWCS~\cite{St-Charles2015} is one of the top five unsupervised background subtraction algorithms achieving decent performance in CDnet 2014~\cite{CDnet2014}.
+
+The foreground segmentation result is generated by subtracting background from the input image and applying a morphological close operation with the $3\times3$ square structuring element and finding connected components. Then, connected components with less than 0.1\% or greater than 25\% of the input image area are removed from the scene. Computation time (CT) of the algorithm is defined as a time consumption for extracting object tubes from the 1 hour long $640\times360$ video. Result of the different foreground segmentation algorithms are summarized in \Cref{tb:bgm}. 
+
+In the proposed framework, GMM~\cite{Zivkovic2004}, GSOC~\cite{GSOC}, and LSBP~\cite{Guo2016} can produce sufficiently high quality foreground segmentation results. This result is not matched with the benchmark~\cite{CDnet2014} because the proposed framework utilizes a few post-processing steps to prune noisy segmentation results. For background images, CNT~\cite{CNT} and PAWCS~\cite{St-Charles2015} generate grayscale or low quality backgrounds, which are not suitable for the video synopsis application. These background subtraction methods require an additional background modeling step to generate high quality time-lapse background images. LSBP~\cite{Guo2016} also produces an awkward background image, but it can be improved with parameter adjustments. Regarding CT, CNT~\cite{CNT}, GMM~\cite{Zivkovic2004}, and ViBe~\cite{Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe} have advantages over other algorithms. They can process the 1 hour long video within 6 minutes; in other words, extracting object tubes from the input video only takes 1/10 of the video length. By considering all factors, GMM~\cite{Zivkovic2004} is the most preferred background subtraction method for the proposed framework. It can produce decent quality of background images as well as foreground segmentation results, and have a low computational complexity, which leads to high throughput of the online video synopsis framework.
+
+\begin{sidewaystable}
+	\centering
+	\begin{tabular}{cccc}
+		\hline\hline
+		Methods & Foreground & Background & CT (min) \\
+		\hline\hline
+		GMM~\cite{Zivkovic2004} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-Zivkovic.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-Zivkovic.png}} & 4.23 \\
+		\hline\hline
+		ViBe & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-ViBe.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-ViBe.png}} & 5.46 \\
+		\hline
+	\end{tabular}
+	\caption{Result of different background subtraction algorithms.}
+	\label{tb:bgm}
+\end{sidewaystable}
+\begin{sidewaystable}\ContinuedFloat
+	\centering
+	\begin{tabular}{cccc}
+		\hline\hline
+		Methods & Foreground & Background & CT (min) \\
+		\hline\hline
+		GSOC & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-GSOC.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-GSOC.png}} & 20.69 \\
+		\hline\hline
+		CNT & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-CNT.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-CNT.png}} & 3.99 \\
+		%GMG & \parbox[c]{0.4\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-GMG.png}} & N/A & - \\[0.5cm]
+		\hline
+	\end{tabular}
+\caption{(continued) Result of different background subtraction algorithms.}
+\end{sidewaystable}
+\begin{sidewaystable}\ContinuedFloat
+	\centering
+	\begin{tabular}{cccc}
+		\hline\hline
+		Methods & Foreground & Background & CT \\
+		\hline\hline
+		PAWCS & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-PAWCS.png}} &
+		\parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-PAWCS.png}} & 322.01 \\
+		\hline\hline
+		LSBP & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-LSBP.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-LSBP.png}} & 36.77 \\
+		\hline
+	\end{tabular}
+	\caption{(continued) Result of different background subtraction algorithms.}
+\end{sidewaystable}
 
 \begin{comment}
 According to the recent review literature~\cite{bouwmans2018deep}, apart from well-established statistical background modelings~\cite{Zivkovic2004,Zivkovic2006,Barnich2009ViBe,Barnich2011ViBe,VanDroogenbroeck2012Background,VanDroogenbroeck2014ViBe,Hofmann2012,Muchtar2018} and neural network based approaches~\cite{maddalena2008self,maddalena2012sobs}, deep learning based approaches become a main stream of the research. %and they can be categorized into two broad groups: convolutional neural networks (CNN)~\cite{Patil2018,Lim2018} and generative adversarial network (GAN)~\cite{Bakkay2018,Sultana2019,Sakkos2019}.
@@ -535,7 +639,7 @@ As shown in Table~\ref{tb:bg_fmeasure} of Patil~\etal~\cite{Patil2018}, F-measur
 \label{sec:framework:tube_gen}
 After the background modeling stage, we can get foreground masks of objects. To generate the object tubes, the masks that belong to the same object must be associated over temporal domain. This association task is identical to the assignment problem. Solving the assignment problem can be seen as finding a matching, where the sum of edge weights is maximized in the bipartite graph. If the one set in the graph contains foreground masks in $i^{\rm{th}}$ frame, the other set has the binary masks belong to $(i+1)^{\rm{th}}$ frame. This problem can be solved by simple yet efficient Hungarian algorithm~\cite{Kuhn1955,kuhn1956variants,munkres1957algorithms}. The original version of the algorithm requires a condition that cardinalities of two sets are equal; in other words, the number of agents and the number of tasks to be assigned are same. We say that the assignment problem with such condition is linear. However, in real world environment, it is common that cardinalities of two sets are not equal; thus, the extended version of Hungarian algorithm~\cite{bourgeois1971extension} is utilized in this dissertation. Moreover, an intersection of HSV color histograms between two foreground regions is used as a similarity function of the bipartite graph~\cite{perez2002color}.
 
-For online video synopsis, generated object tubes are stored and maintained in a queue. When the size of th queue exceeds $K$, the starting labels of first $K$ object tubes in the queue are determined by the proposed tube rearrangement algorithm. Then, corresponding tubes are removed from the queue and prepared to be stitched.
+For online video synopsis, generated object tubes are stored and maintained in a queue. When the size of the queue exceeds $K$, the starting labels of first $K$ object tubes in the queue are determined by the proposed tube rearrangement algorithm. Then, corresponding tubes are removed from the queue and prepared to be stitched.
 
 \section{Object stitching}
 \begin{figure}
@@ -1743,12 +1847,32 @@ Except for the algorithm considering the structured motion~\cite{Fu2014}, the ob
 	\label{fig:exp:OR}
 \end{figure}
 
+\section{Qualitative evaluation}
+In this section, quality of synopsis videos generated by different tube rearrangement algorithms is evaluated.
+
 \chapter{Conclusion}
 \label{sec:conc}
-In this dissertation, the concurrent probabilistic tube rearrangement algorithm for online video synopsis is proposed. To reduce the burden of calculating the collision energy, the occupation matrix, spatial approximation of foreground pixels, is introduced to define the new energy term. The new collision energy is defined as element-wise multiplications of occupation matrices. This energy can be efficiently computed by using FFT and parallel processing. According to the ablation study, both speed up techniques decrease running time of the proposed algorithm by approximately 1/60. In addition, the extensive parameter analysis has been conducted to choose proper values of the parameters required for the proposed algorithm. For the comparative experiments, the proposed algorithm optimizes starting labels of the objects within 1.3 seconds for all test sequences. This is at least 1/6 faster results than states-of-art online tube rearrangement algorithms. Moreover, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others. The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework.
+In this dissertation, efficient tube rearrangement algorithms for online video synopsis are proposed. Efficiency of the proposed algorithms comes from the new representation of the object tube, the occupation matrix, spatial approximation of foreground pixels. By using the occupation matrix, the new collision energy can be defined as element-wise multiplications between two occupation matrices. To find the optimum starting label of the object tube, we need to calculate collision energies for different starting labels. This process is same as conducting $\mathcal{M}\times\mathcal{N}$ 1D cross-correlations between two sets of signals. Therefore, the proposed algorithm can effectively compute the collision energy by using FFT with the low computational complexity. According to the ablation study, utilizing FFT during the collision energy computation reduces running time of the proposed algorithm by 1/20, and the further improvement can be done by using FFT with parallel processing.
+
+For the comparative experiments, the proposed algorithm with FFT optimizes starting labels of the objects within 1.89 seconds in average for all test sequences. This is at least 2.26 faster results than state-of-art online tube rearrangement algorithms. Moreover, these differences can be widened by using FFT with parallel processing. In this case, the proposed algorithm only takes 1/6 less time than competing algorithms. In addition, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others.
+
+For better understanding of the proposed algorithm, effect of adjusting four required parameters is extensively analyzed. When the length parameter $\lambda$ is either too small or large, the proposed algorithm produces the trivial solution. To avoid the situation, the balanced value of $\lambda$ should be selected. For the occupation matrix related parameters, increasing resolution of both binary and probabilistic occupation matrices has little benefits for FR and CR, but a huge disadvantage for RT; therefore, the smallest resolution of the matrix is preferred. Also, the probabilistic occupation matrix produces better results than the binary matrix in general. As the size of queue $K$ increases, FR and CR become better but other two metrics become worse; therefore, we need to compromise the performance while selecting $K$.
+
+The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework, especially for the object tube generation.
 
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,video_synopsis}
 \addcontentsline{toc}{chapter}{\textbf{BIBLIOGRAPHY}}
+
+\chapter*{국문 요지}
+\addcontentsline{toc}{chapter}{\textbf{국문 요지}}
+
+비디오 시놉시스는 긴 동영상을 짧게 요약하여 보안 동영상을 효율적으로 분석 할 수 있도록 돕는 기술이다. 요약 된 동영상을 생성하기 위해서는 원본 동영상에서 움직이는 물체를 물체 튜브의 형태로 추출하는 과정이 필요하다. 이후, 이 튜브들은 사전 정의 된 목적 함수를 기반으로 시간 축에서 재배치된다. 이 목적 함수는 보기 편한 요약 동영상을 만들기 위해 중요한 역할을 수행하는 몇 가지 에너지로 구성된다. 그 중 충돌 에너지는 계산 과정에서 두 개의 물체 튜브를 필요로 하기 때문에 목적 함수 계산 과정에서 병목 현상을 발생 시킨다. 이 문제를 해결하기 위해 기존 접근 방법들은 한 번에 처리되는 튜브의 수를 줄임으로써 충돌 에너지 계산에 필요한 시간을 단축한다. 하지만, 상기 접근 방법들의 계산 복잡도는 많은 수의 튜브를 사용하여 요약 동영상을 생성하기에 충분하지 않다.
+
+본 학위논문은 온라인 비디오 시놉시스에서 효율적인 튜브 재배치 알고리즘을 제안한다. 제안하는 알고리즘은 고속 푸리에 변환(FFT)을 사용하여 충돌 에너지 계산 자체의 복잡성을 줄인다. 알고리즘 복잡성 감소의 첫 번째 과정으로 낮은 해상도를 가지는 전경 마스크인 점령 행렬을 도입하여 물체의 대략적인 위치를 표현한다. 이후, 충돌 에너지는 두 점령 행렬 사이의 연속된 요소별 곱으로 계산 할 수 있다. 이 과정은 두 개의 신호 집합에 대한 1차원 교차 상관을 계산하는 것과 동일하다. 그러므로 충돌 에너지 계산의 복잡도를 줄이기 위해 FFT를 사용할 수 있다. 또한 추가적인 연산 시간 개선을 위해 병렬 처리를 사용할 수 있다.
+
+제안하는 알고리즘의 성능을 평가하고 분석하기 위해 한양대학교 서울 캠퍼스의 4개 장소에서 총 10시간의 동영상을 획득하였다. 모든 테스트 동영상에 대해 제안하는 알고리즘은 평균 1.89초 내에 요약 된 동영상을 생성하였고, 이는 기존 알고리즘들 보다 최소 2.26배 빠른 결과이다. 또한 이 결과는 병렬처리를 같이 사용하여 더 개선될 수 있다. 이 경우, 튜브 재배치 과정에 평균적으로 0.75초가 소요되었다. 또한, 제안하는 알고리즘은 기존 알고리즘과 비교하여 물체 사이의 충돌이 적은 요약 동영상을 생성하였다. 제안하는 알고리즘의 특징을 보다 잘 이해하기 위해 두 가지 속도 향상 기법(FFT 및 병렬 처리)의 효율성을 분석하고 제안하는 알고리즘의 파라미터 분석을 수행하였다.
+
+%\chapter*{ACKNOWLEDGMENT}
 
 \end{document}

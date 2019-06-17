@@ -2,7 +2,6 @@
 \ProvidesClass{hyu_thesis}[2019/04/23 v0.1]
 \LoadClass{report}
 
-\usepackage[utf8]{inputenc}
 \usepackage{geometry}
 \geometry{a4paper, left=35mm, right=35mm, top=53mm, bottom=53mm, head=15mm, foot=15mm}
 \usepackage{graphicx}
@@ -13,6 +12,8 @@
 \usepackage{amsfonts}
 \usepackage{commath}
 \usepackage{mathtools}
+\usepackage[hyphens]{url}
+\usepackage[hidelinks]{hyperref}  
 \usepackage{cleveref}
 \usepackage{algorithmic, algorithm}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
@@ -21,8 +22,10 @@
 \usepackage{lmodern}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
+\pgfplotsset{compat=1.16}
 \usepackage{booktabs}
 \usepackage{verbatim}
+\usepackage{kotex}
 
 \usepackage{fontspec}
 \setmainfont[Ligatures=TeX,BoldFont=*,BoldFeatures=FakeBold,ItalicFont=*,ItalicFeatures=FakeSlant]{Batang}
@@ -75,5 +78,8 @@
 		\clearpage
 		\fi
 }
+
+\renewcommand{\l@figure}{\@dottedtocline{1}{0em}{3.0em}}
+\renewcommand{\l@table}{\@dottedtocline{1}{0em}{3.0em}}
 
 \makeatother
