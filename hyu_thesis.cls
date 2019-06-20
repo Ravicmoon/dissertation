@@ -25,6 +25,7 @@
 \pgfplotsset{compat=1.16}
 \usepackage{booktabs}
 \usepackage{verbatim}
+\usepackage{pdfpages}
 \usepackage{kotex}
 
 \usepackage{fontspec}
