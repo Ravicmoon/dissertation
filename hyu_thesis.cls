@@ -26,6 +26,7 @@
 \usepackage{booktabs}
 \usepackage{verbatim}
 \usepackage{pdfpages}
+\usepackage[toc,page]{appendix}
 \usepackage{kotex}
 
 \usepackage{fontspec}

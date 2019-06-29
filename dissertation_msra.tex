@@ -69,8 +69,6 @@
 \listoftables
 \newpage
 
-\mainmatter
-
 \chapter*{ABSTRACT}
 \addcontentsline{toc}{chapter}{\textbf{ABSTRACT}}
 
@@ -80,6 +78,7 @@ This dissertation presents efficient tube rearrangement algorithms targeted for 
 
 To evaluate and analyze the performance of the proposed algorithms, total 10 hours long videos are captured at four different places of Hanyang University, Seoul Korea. For all the test sequences, the proposed algorithm with FFT can rearrange object tubes within 1.89 seconds in average, and this is at least 2.26 times faster result than existing algorithms. Moreover, the result can be accelerated in conjunction with parallel processing. In this case, it only takes 0.75 seconds in average for the tube rearrangement task. In addition, resulting synopsis videos of the proposed algorithms have less collisions than comparing algorithms. For better understanding of the proposed algorithm, effectiveness of two speed up techniques (FFT and parallel processing) has been analyzed through the ablation study, and the parameter analysis of the proposed algorithm has been conducted extensively.
 \newpage
+\mainmatter
 
 \chapter{Introduction}
 \label{sec:intro}
@@ -111,36 +110,36 @@ After the very first appearance of the video synopsis technique~\cite{Rav-Acha20
 	\centering
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li01.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li01.png}
 	}
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li02.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li02.png}
 	}
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li03.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li03.png}
 	}
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li04.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li04.png}
 	}
 	\\
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li05.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li05.png}
 	}
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li06.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li06.png}
 	}
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li07.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li07.png}
 	}
 	\subfloat[]
 	{
-		\includegraphics[width=0.2\linewidth]{ext-li08.png}
+		\includegraphics[width=0.2\linewidth]{fig/ext-li08.png}
 	}
 	\caption{Synopsis results by scaling down objects~\cite{Li2016a}. Because object sizes are not consistent and matched with the context, the results are visually uncomfortable.}
 	\label{fig:Li}
@@ -150,7 +149,7 @@ One of the big hurdles for video synopsis is that it works poorly on very crowde
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.95\linewidth]{ext-nie.png}
+	\includegraphics[width=0.95\linewidth]{fig/ext-nie.png}
 	\caption{Result of object rearrangements in both spatial and temporal domains~\cite{Nie2014}. Images in the first row are from the input videos and synopsis results are presented in the second row. As we can see in the figure, width of the sidewalk has been expanded to triple, so that more objects can be displayed at the single frame simultaneously.}
 	\label{fig:Nie}
 \end{figure}
@@ -159,21 +158,21 @@ One straightforward extension of video synopsis is applying it to the multicamer
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{ext-hoshen01.png}
+	\includegraphics[width=\linewidth]{fig/ext-hoshen01.png}
 	\caption{Result of LVS~\cite{Hoshen2015}. The image in the first row is from the master camera, and remaining images are snapshots of synopsis videos for the slave cameras containing past activities of the objects appearing in the master camera.}
 	\label{fig:Hoshen}
 \end{figure}
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{ext-zhu01.eps}
+	\includegraphics[width=\linewidth]{fig/ext-zhu01.eps}
 	\caption{Flowchart of the multicamera joint video synopsis~\cite{Zhu2016}. Object tubes extracted from multiple cameras are gathered and optimized together with the joint tube rearrangement. Then, several synopsis videos are generated with rearranged object tubes.}
 	\label{fig:Zhu01}
 \end{figure}
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{ext-zhu02.eps}
+	\includegraphics[width=0.9\linewidth]{fig/ext-zhu02.eps}
 	\caption{Result of the multicamera joint video synopsis~\cite{Zhu2016} with two cameras placed along with the road. Since the white sedan with the red rectangle is driving from cam2 to cam1, it is more natural to see the object in the synopsis video of cam2 first. After that the object is shown in the condensed video of cam1 with the label of 295.}
 	\label{fig:Zhu02}
 \end{figure}
@@ -184,7 +183,7 @@ Aside from the interesting tube filling strategy, it utilizes a simple greedy op
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\linewidth]{ext-fu.eps}
+	\includegraphics[width=\linewidth]{fig/ext-fu.eps}
 	\caption{Concept of the structure preserved video synopsis~\cite{Fu2014}. Objects have strong interactions in the original videos are also grouped together in the synopsis video.}
 	\label{fig:Fu}
 \end{figure}
@@ -197,19 +196,19 @@ He~\etal~\cite{He2017} construct a potential collision graph (PCG) to represent 
 	\centering
 	\subfloat[]
 	{
-		\includegraphics[height=0.2\textheight]{ext-He01.eps}
+		\includegraphics[height=0.2\textheight]{fig/ext-He01.eps}
 	}
 	\subfloat[]
 	{
-		\includegraphics[height=0.2\textheight]{ext-He02.eps}
+		\includegraphics[height=0.2\textheight]{fig/ext-He02.eps}
 	}
 	\subfloat[]
 	{
-		\includegraphics[height=0.2\textheight]{ext-He03.eps}
+		\includegraphics[height=0.2\textheight]{fig/ext-He03.eps}
 	}
 	\subfloat[]
 	{
-		\includegraphics[height=0.2\textheight]{ext-He04.eps}
+		\includegraphics[height=0.2\textheight]{fig/ext-He04.eps}
 	}
 	\caption{Example of constructing PCG~\cite{He2017}. Since the object tube \emph{A} has no potential collisions, the corresponding vertex has no connected edges to other vertices. Otherwise, object tubes having collision potentials (\emph{B}-\emph{C} and \emph{D}-\emph{E}) are connected to each others, and the edges have either positive (CSD relationship) or negative (COD relationship) values.}
 	\label{fig:He}
@@ -239,7 +238,7 @@ To achieve the characteristics, the batch video synopsis~\cite{Pritch2008} utili
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=\linewidth]{ext-rav-acha.eps}
+		\includegraphics[width=\linewidth]{fig/ext-rav-acha.eps}
 	\end{center}
 	\caption{Concept diagram of video synopsis~\cite{Rav-Acha2006}. The bird and man appeared at different time in the original video are rearranged in the temporal domain, and then displayed simultaneously in the condensed video.}
 	\label{fig:Rav-Acha}
@@ -247,7 +246,7 @@ To achieve the characteristics, the batch video synopsis~\cite{Pritch2008} utili
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=\linewidth]{video_synopsis_2d.pdf}
+		\includegraphics[width=\linewidth]{fig/video_synopsis_2d.pdf}
 	\end{center}
 	\caption{Example of the object tube rearrangement in 2D space. Red arrows indicate some offsets of the starting labels for better understanding of the tube rearrangement process. We can see that after the tube rearrangement, the length of the condensed video becomes much shorter than that of the original.}
 	\label{fig:video_synopsis_2d}
@@ -284,7 +283,42 @@ where $I_i(x,y,t)$ is a foreground pixel of $i^{\rm{th}}$ object and $B(x,y,t)$ 
 Defining a proper $E_a$ is important for processing the query of the video synopsis users, since it determines which objects will be included in the resulting video. However, we do not have to directly optimize $E_a$ because object filtering step prior to the optimization with specific conditions (e.g., colors, trajectories, object types, and etc) can do the same functionality.
 
 \section{Time-lapse background generation}
-Before moving on to the next energy term, how to generate time-lapse background is briefly explained. Since the main objective of video synopsis is condensing the contents of the original video, background information as well as foreground has to be condensed too. If the input video is 12 hours long and the condensed video is 10 minutes long, time-lapse background can be generated by uniformly subsampling every $720^\textrm{th}$ of original background images or we can use the adaptive sampling rate proportional to (or inverse proportional to) the number of objects in the current frame~\cite{Pritch2008}. To generate background images, background modeling methods such as well known Gaussian Mixture Models (GMM)~\cite{Stauffer1999,Zivkovic2004,Zivkovic2006}, or simple temporal median of input images over several frames can be used. %An example of the time-lapse background generation is illustrated in \ref{}.
+Before moving on to the next energy term, how to generate time-lapse background is briefly explained. Since the main objective of video synopsis is condensing the contents of the original video, background information as well as foreground has to be condensed too. If the input video is 12 hours long and the condensed video is 10 minutes long, time-lapse background can be generated by uniformly subsampling every $720^\textrm{th}$ of original background images or we can use the adaptive sampling rate proportional to (or inverse proportional to) the number of objects in the current frame~\cite{Pritch2008}. To generate background images, background modeling methods such as well known Gaussian Mixture Models (GMM)~\cite{Stauffer1999,Zivkovic2004,Zivkovic2006}, or simple temporal median of input images over several frames can be used. Some examples of the time-lapse background are depicted in \Cref{fig:tlbg}.
+
+\begin{figure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/tlbg01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/tlbg02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/tlbg03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/tlbg04.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/tlbg05.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/tlbg06.png}
+	}
+	\caption{Some time-lapse background images generated from the input video captured from 7 pm to 8 pm.}
+	\label{fig:tlbg}
+\end{figure}
 
 \section{Background consistency energy}
 The role of the second energy term in (\ref{eq:basic_form}), $E_s$, is to seamlessly render the object tubes with the time-lapse background images. In the video synopsis framework, foreground pixels of the object tubes are stitched with the background images to generate the condensed video. During the stitching process, image blending algorithms (e.g., Poisson image editing~\cite{Perez2003}) can be used to smoothly blend the foreground and background pixels. However, inaccurate foreground segmentation results or foreground and background pixels from different time of day can cause visually unappealing results. $E_s$ is defined to penalize such situation.
@@ -349,7 +383,7 @@ where $B_i(t)$ and $B_j(t)$ are bounding boxes of $i^{\rm{th}}$ and $j^{\rm{th}}
 In (\ref{eq:basic_form}), we should note that energies can be categorized into two groups regarding the number of required parameters: unary and pairwise. Activity and background consistencies only require a single object tube to calculate the energies; on the other hand, remaining energies require two object tubes for the calculation. When the number of objects to optimize increases, pairwise energy terms become a bottleneck of the computation. Since $E_s$ is not the main concern of online video synopsis, $E_c$ becomes the one and only issue for the computational burden. As described in \Cref{sec:intro:related}, recent studies of video synopsis~\cite{Feng2012,Fu2014,Zhu2015,He2017,He2017a} do not calculate $E_c$ efficiently. In the following section, a new representation of the object tube named as an occupation matrix which has a suitable form for concurrent computation of $E_c$ will be introduced. In addition, the occupation matrix allows us to reduce the computational complexity of $E_c$ by using FFT~\cite{Oppenheim2009}.
 
 \begin{sidewaysfigure}
-\includegraphics[width=\linewidth]{flowchart.pdf}
+\includegraphics[width=\linewidth]{fig/flowchart.pdf}
 \caption{Flowchart of the proposed online video synopsis framework. At the beginning, foreground of the object tube is reshaped into the 3D occupation matrix. This matrix representation is used to calculate the collision energy fast in conjunction with FFT~\cite{Oppenheim2009} and parallel processing. Afterwards, optimum starting labels of the tubes are determined, and the rearranged tubes are then stitched back with the background to generate a resulting synopsis video. Illustrations of man and vehicle in this figure are created by Lluisa Iborra and Yasser Megahed from the Noun Project.}
 \label{fig:flowchart}
 \end{sidewaysfigure}
@@ -389,7 +423,7 @@ Due to the condition $\left( \sum_{(x,y) \in C(u,v)}\textbf{F}_i(x,y,t) \neq 0 \
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=0.7\linewidth]{bin-occ.pdf}
+		\includegraphics[width=0.7\linewidth]{fig/bin-occ.pdf}
 	\end{center}
 	\caption{Example of the binary occupation matrix generation when $\mathcal{M}\times\mathcal{N}=9\times16$. The foreground and background of the object are represented in black and white, respectively. Dotted lines in the figure are depicted to show contours of the original object for the readers. Illustrations of the woman and man in this figure are created by Nataliia Lytvyn and Ludovic Gicqueau from the Noun Project, respectively.}
 	\label{fig:bin_occ}
@@ -411,7 +445,7 @@ where $|C(u,v)|$ is a cardinality of $C(u,v)$. In most cases, where $\mathcal{W}
 For the next step, the collision energy is reformulated with the occupation matrix and a new energy term $E_l$ is introduced to penalize a long condensed video. Then, the final objective function of the proposed tube rearrangement algorithm is defined by considering both $E_c$ and $E_l$. 
 \begin{sidewaysfigure}
 	\centering
-	\includegraphics[width=0.8\linewidth]{hadamard-prod.pdf}
+	\includegraphics[width=0.8\linewidth]{fig/hadamard-prod.pdf}
 	\caption{Example calculation of reformulated collision energy $E_c$ with two binary occupation matrices. Occupied elements in the matrix are colored in red and blue. After the element-wise multiplication, we can see that the objects have two collided elements colored in magenta. In this figure, $\odot$ is an operator for the element-wise multiplication, also known as Hadamard product.}
 	\label{fig:hadamard_prod}
 \end{sidewaysfigure}
@@ -495,13 +529,13 @@ The motivation behind the conversion from (\ref{eq:EcStepwise}) to (\ref{eq:EcPP
 	\centering
 	\subfloat[2D Hadamard products]
 	{
-		\includegraphics[width=0.9\linewidth]{3d-hadamard-prod.pdf}
+		\includegraphics[width=0.9\linewidth]{fig/3d-hadamard-prod.pdf}
 		\label{fig:3d_hadamard}
 	}
 	\qquad
 	\subfloat[1D cross-correlations]
 	{
-		\includegraphics[width=0.9\linewidth]{1d-cross-corr.pdf}
+		\includegraphics[width=0.9\linewidth]{fig/1d-cross-corr.pdf}
 		\label{fig:1d_cross_corr}
 	}
 	\caption{Two ways of calculating $E_c$. All of occupation matrices in this figure have $6 \times 8 \times 3$ spatio-temporal resolution. $E_c$ can be calculated by using \protect\subref{fig:3d_hadamard} Hadamard products between two sets of frames, and \protect\subref{fig:1d_cross_corr} 1D cross correlations between 48 pairs of 1D signals. Three primitive colors (red, green, and blue) in this figure is used to show some correspondences.}
@@ -554,9 +588,9 @@ In the proposed framework, GMM~\cite{Zivkovic2004}, GSOC~\cite{GSOC}, and LSBP~\
 		\hline\hline
 		Methods & Foreground & Background & CT (min) \\
 		\hline\hline
-		GMM~\cite{Zivkovic2004} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-Zivkovic.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-Zivkovic.png}} & 4.23 \\
+		GMM~\cite{Zivkovic2004} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-fg-Zivkovic.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-bg-Zivkovic.png}} & 4.23 \\
 		\hline\hline
-		ViBe & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-ViBe.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-ViBe.png}} & 5.46 \\
+		ViBe & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-fg-ViBe.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-bg-ViBe.png}} & 5.46 \\
 		\hline
 	\end{tabular}
 	\caption{Result of different background subtraction algorithms.}
@@ -568,9 +602,9 @@ In the proposed framework, GMM~\cite{Zivkovic2004}, GSOC~\cite{GSOC}, and LSBP~\
 		\hline\hline
 		Methods & Foreground & Background & CT (min) \\
 		\hline\hline
-		GSOC & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-GSOC.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-GSOC.png}} & 20.69 \\
+		GSOC & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-fg-GSOC.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-bg-GSOC.png}} & 20.69 \\
 		\hline\hline
-		CNT & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-CNT.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-CNT.png}} & 3.99 \\
+		CNT & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-fg-CNT.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-bg-CNT.png}} & 3.99 \\
 		%GMG & \parbox[c]{0.4\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-GMG.png}} & N/A & - \\[0.5cm]
 		\hline
 	\end{tabular}
@@ -582,10 +616,10 @@ In the proposed framework, GMM~\cite{Zivkovic2004}, GSOC~\cite{GSOC}, and LSBP~\
 		\hline\hline
 		Methods & Foreground & Background & CT \\
 		\hline\hline
-		PAWCS & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-PAWCS.png}} &
-		\parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-PAWCS.png}} & 322.01 \\
+		PAWCS & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-fg-PAWCS.png}} &
+		\parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-bg-PAWCS.png}} & 322.01 \\
 		\hline\hline
-		LSBP & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-fg-LSBP.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{bgm-bg-LSBP.png}} & 36.77 \\
+		LSBP & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-fg-LSBP.png}} & \parbox[c]{0.35\linewidth}{\includegraphics[width=\linewidth]{fig/bgm-bg-LSBP.png}} & 36.77 \\
 		\hline
 	\end{tabular}
 	\caption{(continued) Result of different background subtraction algorithms.}
@@ -648,19 +682,19 @@ For online video synopsis, generated object tubes are stored and maintained in a
 	\centering
 	\subfloat[Source image]
 	{
-		\includegraphics[height=0.28\textheight]{poisson_src1.eps}
+		\includegraphics[height=0.28\textheight]{fig/poisson_src1.eps}
 	}
 	\subfloat[Destination image]
 	{
-		\includegraphics[height=0.28\textheight]{poisson_dest1.eps}
+		\includegraphics[height=0.28\textheight]{fig/poisson_dest1.eps}
 	}
 	\subfloat[Cloning]
 	{
-		\includegraphics[height=0.28\textheight]{poisson_cloning1.eps}
+		\includegraphics[height=0.28\textheight]{fig/poisson_cloning1.eps}
 	}
 	\subfloat[Seamless cloning]
 	{
-		\includegraphics[height=0.28\textheight]{poisson_seamless_cloning1.eps}
+		\includegraphics[height=0.28\textheight]{fig/poisson_seamless_cloning1.eps}
 	}
 	\caption{First example of seamless cloning using Poisson image editing. All images in this figure are from the work of P{\'e}rez~\etal~\cite{Perez2003}.}
 	\label{fig:seamless_cloning1}
@@ -675,11 +709,11 @@ For online video synopsis, generated object tubes are stored and maintained in a
 			{
 				\begin{minipage}[t][5cm][t]{0.9\linewidth}
 					\centering
-					\includegraphics[height=0.05\textheight]{poisson_src2-1.eps}
+					\includegraphics[height=0.05\textheight]{fig/poisson_src2-1.eps}
 					\vfill
-					\includegraphics[height=0.05\textheight]{poisson_src2-2.eps}
+					\includegraphics[height=0.05\textheight]{fig/poisson_src2-2.eps}
 					\vfill
-					\includegraphics[height=0.15\textheight]{poisson_dest2.eps}
+					\includegraphics[height=0.15\textheight]{fig/poisson_dest2.eps}
 				\end{minipage}
 			}
 		}
@@ -690,7 +724,7 @@ For online video synopsis, generated object tubes are stored and maintained in a
 			{
 				\begin{minipage}[t][5cm][t]{0.9\linewidth}
 					\centering
-					\includegraphics[width=0.9\linewidth]{poisson_cloning2.eps}
+					\includegraphics[width=0.9\linewidth]{fig/poisson_cloning2.eps}
 				\end{minipage}
 			}
 		}
@@ -701,7 +735,7 @@ For online video synopsis, generated object tubes are stored and maintained in a
 			{
 				\begin{minipage}[t][5cm][t]{0.9\linewidth}
 					\centering
-					\includegraphics[width=0.9\linewidth]{poisson_seamless_cloning2.eps}
+					\includegraphics[width=0.9\linewidth]{fig/poisson_seamless_cloning2.eps}
 				\end{minipage}
 			}
 		}
@@ -715,7 +749,7 @@ Before explaining the mathematics behind this editing, some notations need to be
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.9\linewidth]{poisson_image_editing_notation.eps}
+	\includegraphics[width=0.9\linewidth]{fig/poisson_image_editing_notation.eps}
 	\caption{Notations used in Poisson image editing~\cite{Perez2003}.}
 	\label{fig:poisson_notation}
 \end{figure}
@@ -736,17 +770,26 @@ where div$\cdot$ is a divergence operator; hence $\textrm{div}\textbf{v}= \left(
 \end{equation}
 The equation (\ref{eq:poisson2}) means that the Laplacian of the inserted region is identical to that of the source while pixel intensities of the destination over the inserted region's boundary remain unchanged.
 
-\Cref{fig:poisson_fg_bg} shows some frames of the condensed video after applying either na\"ive alpha blending or Poisson image editing for the stitching process. As you can see in the figure, results using Poisson image editing are more visually natural but it takes more computation time than the na\"ive approach.
+\Cref{fig:poisson_fg_bg} shows an example of the condensed video after applying either na\"ive alpha blending or Poisson image editing for the stitching process. As you can see in the figure, the result using Poisson image editing is more visually natural but it takes more computation time than the na\"ive approach.
 \begin{figure}
 	\centering
-	\caption{Figure will be inserted here.}
+	\subfloat[Alpha blending]
+	{
+		\includegraphics[width=0.9\linewidth]{fig/stitch_alpha_blending.png}
+	}
+	\\
+	\subfloat[Poisson image editing]
+	{
+		\includegraphics[width=0.9\linewidth]{fig/stitch_poisson_image_editing.png}
+	}
+	\caption{Result of two different object stitching algorithms. The blending ratio of the foreground and background in the alpha blending is 1:1.}
 	\label{fig:poisson_fg_bg}
 \end{figure}
 
 \section{Discontinuity of motion flow}
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\linewidth]{framework.pdf}
+	\includegraphics[width=0.8\linewidth]{fig/framework.pdf}
 	\caption{Proposed online video synopsis framework. The framework generates a partial condensed video whenever the size of the queue exceeds $K$. Then, partial videos are merged into the complete synopsis video.}
 	\label{fig:framework}
 \end{figure}
@@ -754,20 +797,20 @@ As shown in \Cref{fig:framework}, online video synopsis generates a small portio
 \begin{figure}
 	\subfloat[Rearranged tubes after $1^{\rm{st}}$ iteration]
 	{
-		\includegraphics[width=0.9\linewidth]{discontinuity.pdf}
+		\includegraphics[width=0.9\linewidth]{fig/discontinuity.pdf}
 		\label{fig:discontinuity:1}
 	}
 	\\
 	\subfloat[Rearranged tubes after $2^{\rm{nd}}$ iteration]
 	{
-		\includegraphics[width=0.9\linewidth]{discontinuity2.pdf}
+		\includegraphics[width=0.9\linewidth]{fig/discontinuity2.pdf}
 		\label{fig:discontinuity:2}
 	}
 	\caption{Simple solution for the discontinuity of motion flow problem. When finding optimum starting labels for $2^{\rm{nd}}$ iteration, tails of the object tubes rearranged at $1^{\rm{st}}$ iteration (patterned region) are considered as obstacles as shown in \protect\subref{fig:discontinuity:2}.}
 	\label{fig:discontinuity}
 \end{figure}
 
-\chapter{Experimental Results}
+\chapter{Experimental results}
 \label{sec:exp}
 
 \section{Performance metrics}
@@ -803,13 +846,14 @@ where $O(x,y,t)$ is activated to 1, when $I^{*}(x,y,t)$ is a result of blending 
 The last but not least RT is a metric to compare computational complexity of the algorithm and measured in seconds. This metric is important when the framework responds to the requests of users. Smaller RT is better for reducing a latency of the system. All experiments in following sections are conducted on a 4-core i7-5700K 4.0 GHz computer with 32 GB of memory. 
 
 \section{Test video sequences}
-For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_perf}. Some examples of the test sequences are depicted in \Cref{fig:examples}.
+\label{sec:test_video_sequence}
+For the test sequences, six video clips are captured at four different places: a parking lot square, a crossroad, a library lobby, and a subway station plaza. Detail characteristics of the test sequences are summarized in Table~\ref{tb:video_perf}. Some examples of the test sequences are depicted in \Cref{fig:examples}. In addition, condensed videos of the test sequences generated by the proposed framework are summarized in Apppendix \ref{sec:app}.
 
-Parking lot square I sequence mainly focuses on the entrance of the parking lot but there is a sidewalk with red bricks on the left. Since this place is a main road to the most of buildings in Hanyang university, the scene is very crowded with people. The scene of Parking lot square II is similar to that of Parking lot square I, but the most of moving objects are vehicles not pedestrians.
+Parking lot square I sequence mainly focuses on the entrance of the parking lot but there is a sidewalk with red bricks on the left. Since this place is a main road to most of the buildings in Hanyang university, the scene is very crowded with people. The scene of Parking lot square II is similar to that of Parking lot square I, but most of the moving objects are vehicles not pedestrians.
 
 Crossroad I and II sequences are captured at the same place with different seasons and camera's zoom parameters. Crossroad I is captured at summer with more zoom, while Crossroad II is captured at fall with less zoom. Most of people appeared in this scene walk in either left or right directions.
 
-Library lobby sequence is captured by the indoor security camera mounted on 2nd floor of the building. There is a gateway of the library at top of the scene and stairs (not visible in the scene) are located at left and right side of the building; therefore, people move from either left or right to the top, or vice versa.
+Library lobby sequence is captured by the indoor security camera mounted on the $2^\textrm{nd}$ floor of the building. There is a gateway of the library at top of the scene and stairs (not visible in the scene) are located at left and right side of the building; therefore, people move from either left or right to the top, or vice versa.
 
 Subway station plaza is an open place in front of the subway station entrance. Since there are many ways to get to the buildings from here, there is no dominant walking direction of people.
 
@@ -1624,11 +1668,11 @@ Similar to selecting $\lambda$, there is a trade-off between RT and other metric
 \end{sidewaysfigure}
 
 \subsubsection{Type of occupation matrix}
-Based on the observations so far, the one and only advantage of the binary occupation matrix over the probabilistic occupation matrix is OR. Therefore, we can say that using the probabilistic occupation matrix is beneficial for the most of situations. If the user wants a less crowded condensed video, using the binary occupation matrix can be an option. However, instead of changing the type of the occupation matrix, adjusting $\lambda$ is more simple and desirable solution.
+Based on the observations so far, the one and only advantage of the binary occupation matrix over the probabilistic occupation matrix is OR. Therefore, we can say that using the probabilistic occupation matrix is beneficial for most of the situations. If the user wants a less crowded condensed video, using the binary occupation matrix can be an option. However, instead of changing the type of the occupation matrix, adjusting $\lambda$ is more simple and desirable solution.
 
 \subsection{Ablation study for speed up techniques}
 \label{sec:exp:parallel}
-In this section, ablation study for the two speed up techniques used in the proposed algorithm is conducted: FFT and parallel processing. Total four versions of the algorithm are compared regarding RT as summarized in \Cref{tb:ablation}. The baseline of the algorithm denoted as Occ, utilizes the occupation matrix and the cross-correlation to calculate collisions between the objects. For all versions of the algorithm, the probabilistic occupation matrix of $9\times16$ resolution is utilized and other parameters are fixed as $\lambda=100$ and $K=50$. As similar to \Cref{sec:exp:param}, five video sequences from VC7 to VC11 are utilized for the evaluation.
+In this section, ablation study for the two speed up techniques used in the proposed algorithm is conducted: FFT~\cite{Oppenheim2009} and parallel processing. Total four versions of the algorithm are compared regarding RT as summarized in \Cref{tb:ablation}. The baseline of the algorithm denoted as Occ, utilizes the occupation matrix and the cross-correlation to calculate collisions between the objects. For all versions of the algorithm, the probabilistic occupation matrix of $9\times16$ resolution is utilized and other parameters are fixed as $\lambda=100$ and $K=50$. As similar to \Cref{sec:exp:param}, five video sequences from VC7 to VC11 are utilized for the evaluation.
 
 \begin{table}
 	\centering
@@ -1855,13 +1899,171 @@ In this dissertation, efficient tube rearrangement algorithms for online video s
 
 For the comparative experiments, the proposed algorithm with FFT optimizes starting labels of the objects within 1.89 seconds in average for all test sequences. This is at least 2.26 faster results than state-of-art online tube rearrangement algorithms. Moreover, these differences can be widened by using FFT with parallel processing. In this case, the proposed algorithm only takes 1/6 less time than competing algorithms. In addition, it produces condensed videos with the lowest OR, which indicates that the resulting videos are visually less complex and easier to understand behaviors of rearranged objects than the others.
 
-For better understanding of the proposed algorithm, effect of adjusting four required parameters is extensively analyzed. When the length parameter $\lambda$ is either too small or large, the proposed algorithm produces the trivial solution. To avoid the situation, the balanced value of $\lambda$ should be selected. For the occupation matrix related parameters, increasing resolution of both binary and probabilistic occupation matrices has little benefits for FR and CR, but a huge disadvantage for RT; therefore, the smallest resolution of the matrix is preferred. Also, the probabilistic occupation matrix produces better results than the binary matrix in general. As the size of queue $K$ increases, FR and CR become better but other two metrics become worse; therefore, we need to compromise the performance while selecting $K$.
+For better understanding of the proposed algorithm, effect of adjusting four required parameters is extensively analyzed. When the length parameter $\lambda$ is either too small or large, the proposed algorithm produces the trivial solution. To avoid the situation, the balanced value of $\lambda$ should be selected. For the occupation matrix related parameters, increasing resolution of both binary and probabilistic occupation matrices has little benefits for FR and CR, but a huge disadvantage for RT; therefore, the smallest resolution of the matrix ($9\times16$) is preferred. Also, the probabilistic occupation matrix produces better results than the binary matrix in general. As the size of queue $K$ increases, FR and CR become better but other two metrics become worse; therefore, we need to compromise the performance while selecting $K$.
 
 The future work of this dissertation will involve running the proposed algorithm on GPU and improving other components of the online video synopsis framework, especially for the object tube generation.
 
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,video_synopsis}
 \addcontentsline{toc}{chapter}{\textbf{BIBLIOGRAPHY}}
+
+\begin{appendices}
+
+\chapter{Result of proposed framework}
+\label{sec:app}
+This appendix summarizes some frames of the condensed videos generated by the proposed framework when the original videos are the test sequences described in \Cref{sec:test_video_sequence}. Time stamps in the condensed video indicate objects' appearing time in the original video.
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC1_01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC1_02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC1_03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC1_04.png}
+	}
+	\caption{Some frames of the condensed video of Parking lot square I sequence (VC1).}
+	\label{fig:result_VC1}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC2_01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC2_02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC2_03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC2_04.png}
+	}
+	\caption{Some frames of the condensed video of Parking lot square II sequence (VC2).}
+	\label{fig:result_VC2}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC3_01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC3_02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC3_03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC3_04.png}
+	}
+	\caption{Some frames of the condensed video of Crossroad I sequence (VC3).}
+	\label{fig:result_VC3}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC4_01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC4_02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC4_03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC4_04.png}
+	}
+	\caption{Some frames of the condensed video of Crossroad II sequence (VC4).}
+	\label{fig:result_VC4}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC5_01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC5_02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC5_03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC5_04.png}
+	}
+	\caption{Some frames of the condensed video of Library lobby I sequence (VC5).}
+	\label{fig:result_VC5}
+\end{sidewaysfigure}
+
+\begin{sidewaysfigure}
+	\centering
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC6_01.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC6_02.png}
+	}
+	\\
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC6_03.png}
+	}
+	\qquad
+	\subfloat[]
+	{
+		\includegraphics[width=0.45\linewidth]{fig/VC6_04.png}
+	}
+	\caption{Some frames of the condensed video of Subway station plaza I sequence (VC6).}
+	\label{fig:result_VC6}
+\end{sidewaysfigure}
+
+\end{appendices}
 
 \chapter*{국문 요지}
 \addcontentsline{toc}{chapter}{\textbf{국문 요지}}
@@ -1875,7 +2077,7 @@ The future work of this dissertation will involve running the proposed algorithm
 \chapter*{감사의 글}
 \addcontentsline{toc}{chapter}{\textbf{감사의 글}}
 
-가장 먼저 2011년 23살 어린 나이에 연구실에 석박통합과정으로 입학한 저를 박사 학위논문이 마무리되는 지금까지 지도 해주신 김회율 교수님께 깊은 감사를 드립니다. 선배들이 일찍 졸업하여 연구실에서 최고참 선배로써 지내는 기간이 길어서 무거운 책임감 때문에 항상 힘들고 어려웠지만, 후배들의 헌신적인 도움으로 여기까지 올 수 있었다는 생각을 합니다. 그리고 앞이 보이지 않는 어둠 속에 갇혀 있던 제 삶에 빛이 되어 주신 하나님께 감사드립니다. 또한 항상 제 곁에서 존재 자체로 저에게 격려가 되었던 가족들과 예은이에게 감사합니다, 그리고 사랑합니다.
+가장 먼저 2011년 21살 어린 나이에 연구실에 석박통합과정으로 입학한 저를 박사 학위논문이 마무리되는 지금까지 지도 해주신 김회율 교수님께 깊은 감사를 드립니다. 선배들이 일찍 졸업하여 연구실에서 최고참 선배로써 지내는 기간이 길어서 무거운 책임감 때문에 항상 힘들고 어려웠지만, 후배들의 헌신적인 도움으로 여기까지 올 수 있었다는 생각을 합니다. 그리고 앞이 보이지 않는 어둠 속에 갇혀 있던 제 삶에 빛이 되어 주신 하나님께 감사드립니다. 또한 항상 제 곁에서 존재 자체로 저에게 격려가 되었던 가족들과 예은이에게 감사합니다, 그리고 사랑합니다.
 
 \includepdf[pages={2,3}]{signatures.pdf}
 
